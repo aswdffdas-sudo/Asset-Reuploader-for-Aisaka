@@ -1,0 +1,94 @@
+local _old_require = require
+local function require(target)
+    if typeof(target) == "string" then
+        local moduleName = string.match(target, "([^/]+)$") or target
+        local found = script:FindFirstChild(moduleName, true)
+        if not found and script.Parent then
+            found = script.Parent:FindFirstChild(moduleName, true)
+        end
+        if not found then
+            local root = script:FindFirstAncestor("Plugin") or script
+            if root.Name ~= "Plugin" and root:FindFirstChild("Plugin") then
+                root = root:FindFirstChild("Plugin")
+            end
+            found = root:FindFirstChild(moduleName, true)
+        end
+        if not found then
+            local folder = script:FindFirstAncestor("AssetReuploader")
+            if folder then
+                found = folder:FindFirstChild(moduleName, true)
+            end
+        end
+        if found and found:IsA("ModuleScript") then
+            return _old_require(found)
+        end
+        error("Could not find ModuleScript for: " .. tostring(target))
+    end
+    return _old_require(target)
+end
+
+local task = task or {
+    spawn = function(fn, ...)
+        local args = table.pack(...)
+        coroutine.wrap(function()
+            fn(table.unpack(args, 1, args.n))
+        end)()
+    end,
+    wait = wait,
+    delay = function(t, fn, ...)
+        local args = table.pack(...)
+        delay(t, function()
+            fn(table.unpack(args, 1, args.n))
+        end)
+    end,
+    defer = function(fn, ...)
+        local args = table.pack(...)
+        coroutine.wrap(function()
+            fn(table.unpack(args, 1, args.n))
+        end)()
+    end,
+}
+
+local function getGameDescendants()
+    local instances = {}
+    local services = {"Workspace", "ReplicatedStorage", "ReplicatedFirst", "StarterGui", "StarterPack", "StarterPlayer", "Lighting", "SoundService", "ServerStorage", "ServerScriptService"}
+    for _, sName in ipairs(services) do
+        local ok, s = pcall(game.GetService, game, sName)
+        if ok and s then
+            table.insert(instances, s)
+            for _, d in ipairs(s:GetDescendants()) do
+                table.insert(instances, d)
+            end
+        end
+    end
+    return instances
+end
+
+--!strict
+local getFilterOptions = require("../GetFilterOptions")
+local reuploadIds = require("../ReuploadIds")
+local UiLibrary = require("../../UiLibrary")
+
+local Selection = game:GetService("Selection")
+
+return function(ui: UiLibrary.Ui, plugin: Plugin)
+    local tab = ui:CreateTab("Sound")
+
+    tab:CreateButton("Reupload", function()
+        local filter = getFilterOptions(plugin, getGameDescendants())
+        table.insert(filter.WhitelistedInstances, "Sound")
+
+		reuploadIds(plugin, ui, filter, "Sound", _G.getPlaceList()) -- forgive me
+	end)
+	
+	tab:CreateButton("Reupload Selected", function()
+        local filter = {
+            WhitelistedInstances = { "Sound", "StringValue", "NumberValue", "IntValue", "LuaSourceContainer" },
+            Instances = Selection:Get()
+        }
+
+        reuploadIds(plugin, ui, filter, "Sound", _G.getPlaceList()) -- forgive me
+	end)
+
+
+end
