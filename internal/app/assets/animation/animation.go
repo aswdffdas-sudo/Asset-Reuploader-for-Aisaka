@@ -27,19 +27,19 @@ import (
 
 const assetTypeID int32 = 24
 const animationUploadRetryTries = 5
-// SmoothQueue: even start spacing + concurrency cap (respect Roblox limits, don’t exceed).
-const animationStartsPerMinute = 420
-const animationMaxConcurrentUploads = 24
+// SmoothQueue: even start spacing + concurrency cap tuned for Aisaka revival rate limits.
+const animationStartsPerMinute = 50
+const animationMaxConcurrentUploads = 4
 
 // Pause every N successful uploads while holding a concurrency slot (API breather).
-const animationSuccessDrainEvery = 300
-const animationSuccessDrainPause = 1500 * time.Millisecond
+const animationSuccessDrainEvery = 50
+const animationSuccessDrainPause = 2000 * time.Millisecond
 
 // When Retry-After is missing on 429 (rare); server hint via ide.RateLimitError otherwise.
-const animationRateLimitMinBackoff = 800 * time.Millisecond
+const animationRateLimitMinBackoff = 3000 * time.Millisecond
 // Extra wait + pacer chill after any 429 (Retry-After is often a floor; API still hot).
-const animationPost429ExtraWait = 1800 * time.Millisecond
-const animationPost429Chill = 1100 * time.Millisecond
+const animationPost429ExtraWait = 3500 * time.Millisecond
+const animationPost429Chill = 3000 * time.Millisecond
 
 // Parallel 50-id GetAssetsInfo chunks (metadata only).
 const animationMaxParallelChunks = 6

@@ -3,6 +3,7 @@ package gamepass
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -108,104 +109,114 @@ func uploadTShirtToAisaka(c *roblox.Client, name string, imgData []byte) (int64,
 
 	uploadURL := fmt.Sprintf("https://www.%s/develop/upload", domain)
 
-	// Step 1: Probe for CSRF
-	probeReq, err := http.NewRequest("POST", uploadURL, bytes.NewReader([]byte("{}")))
-	if err != nil {
-		return 0, err
-	}
-	probeReq.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
-	probeReq.Header.Set("Content-Type", "application/json")
-
-	probeResp, err := c.DoRequest(probeReq)
-	if err != nil {
-		return 0, fmt.Errorf("Aisaka CSRF probe failed: %w", err)
-	}
-	csrfToken := probeResp.Header.Get("X-CSRF-Token")
-	if csrfToken == "" {
-		csrfToken = probeResp.Header.Get("x-csrf-token")
-	}
-	csrfCookie := probeResp.Header.Get("Set-Cookie")
-	probeResp.Body.Close()
-
-	// Step 2: Build multipart form data for T-Shirt (assetType = 2)
-	var b bytes.Buffer
-	w := multipart.NewWriter(&b)
-
-	_ = w.WriteField("name", name)
-	_ = w.WriteField("assetType", "2") // 2 = T-Shirt on Aisaka develop?View=2
-
-	h := make(textproto.MIMEHeader)
-	h.Set("Content-Disposition", fmt.Sprintf(`form-data; name="file"; filename="%s.png"`, name))
-	h.Set("Content-Type", "image/png")
-	part, err := w.CreatePart(h)
-	if err != nil {
-		return 0, err
-	}
-	if _, err := part.Write(imgData); err != nil {
-		return 0, err
-	}
-	_ = w.Close()
-
-	// Step 3: Send POST upload
-	upReq, err := http.NewRequest("POST", uploadURL, &b)
-	if err != nil {
-		return 0, err
-	}
-	upReq.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
-	upReq.Header.Set("Content-Type", w.FormDataContentType())
-	if csrfToken != "" {
-		upReq.Header.Set("X-CSRF-Token", csrfToken)
-	}
-
-	cookieHeader := ""
-	if csrfCookie != "" {
-		cookieHeader = strings.Split(csrfCookie, ";")[0]
-	}
-	if c.Cookie != "" {
-		if cookieHeader != "" {
-			cookieHeader += "; "
+	for attempt := 1; attempt <= 3; attempt++ {
+		// Step 1: Probe for CSRF
+		probeReq, err := http.NewRequest("POST", uploadURL, bytes.NewReader([]byte("{}")))
+		if err != nil {
+			return 0, err
 		}
-		cookieHeader += ".ROBLOSECURITY=" + c.Cookie
-	}
-	if cookieHeader != "" {
-		upReq.Header.Set("Cookie", cookieHeader)
-	}
+		probeReq.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
+		probeReq.Header.Set("Content-Type", "application/json")
 
-	resp, err := c.DoRequest(upReq)
-	if err != nil {
-		return 0, err
-	}
-	defer resp.Body.Close()
+		probeResp, err := c.DoRequest(probeReq)
+		if err != nil {
+			return 0, fmt.Errorf("Aisaka CSRF probe failed: %w", err)
+		}
+		csrfToken := probeResp.Header.Get("X-CSRF-Token")
+		if csrfToken == "" {
+			csrfToken = probeResp.Header.Get("x-csrf-token")
+		}
+		csrfCookie := probeResp.Header.Get("Set-Cookie")
+		probeResp.Body.Close()
 
-	body, _ := io.ReadAll(resp.Body)
-	bodyStr := strings.TrimSpace(string(body))
+		// Step 2: Build multipart form data for T-Shirt (assetType = 2)
+		var b bytes.Buffer
+		w := multipart.NewWriter(&b)
 
-	if resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusCreated {
-		var parsed map[string]interface{}
-		if json.Unmarshal(body, &parsed) == nil {
-			for _, k := range []string{"assetId", "id", "AssetId", "Id", "targetId", "TargetId"} {
-				if v, ok := parsed[k]; ok {
-					switch num := v.(type) {
-					case float64:
-						if int64(num) > 0 {
-							return int64(num), nil
-						}
-					case string:
-						if pID, err := strconv.ParseInt(num, 10, 64); err == nil && pID > 0 {
-							return pID, nil
+		_ = w.WriteField("name", name)
+		_ = w.WriteField("assetType", "2") // 2 = T-Shirt on Aisaka develop?View=2
+
+		h := make(textproto.MIMEHeader)
+		h.Set("Content-Disposition", fmt.Sprintf(`form-data; name="file"; filename="%s.png"`, name))
+		h.Set("Content-Type", "image/png")
+		part, err := w.CreatePart(h)
+		if err != nil {
+			return 0, err
+		}
+		if _, err := part.Write(imgData); err != nil {
+			return 0, err
+		}
+		_ = w.Close()
+
+		// Step 3: Send POST upload
+		upReq, err := http.NewRequest("POST", uploadURL, &b)
+		if err != nil {
+			return 0, err
+		}
+		upReq.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
+		upReq.Header.Set("Content-Type", w.FormDataContentType())
+		if csrfToken != "" {
+			upReq.Header.Set("X-CSRF-Token", csrfToken)
+		}
+
+		cookieHeader := ""
+		if csrfCookie != "" {
+			cookieHeader = strings.Split(csrfCookie, ";")[0]
+		}
+		if c.Cookie != "" {
+			if cookieHeader != "" {
+				cookieHeader += "; "
+			}
+			cookieHeader += ".ROBLOSECURITY=" + c.Cookie
+		}
+		if cookieHeader != "" {
+			upReq.Header.Set("Cookie", cookieHeader)
+		}
+
+		resp, err := c.DoRequest(upReq)
+		if err != nil {
+			return 0, err
+		}
+		defer resp.Body.Close()
+
+		body, _ := io.ReadAll(resp.Body)
+		bodyStr := strings.TrimSpace(string(body))
+
+		if resp.StatusCode == http.StatusTooManyRequests || strings.Contains(strings.ToLower(bodyStr), "too many") {
+			fmt.Printf("Rate limit hit on Aisaka for '%s'. Backing off for 4s (attempt %d/3)...\n", name, attempt)
+			time.Sleep(4 * time.Second)
+			continue
+		}
+
+		if resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusCreated {
+			var parsed map[string]interface{}
+			if json.Unmarshal(body, &parsed) == nil {
+				for _, k := range []string{"assetId", "id", "AssetId", "Id", "targetId", "TargetId"} {
+					if v, ok := parsed[k]; ok {
+						switch num := v.(type) {
+						case float64:
+							if int64(num) > 0 {
+								return int64(num), nil
+							}
+						case string:
+							if pID, err := strconv.ParseInt(num, 10, 64); err == nil && pID > 0 {
+								return pID, nil
+							}
 						}
 					}
 				}
 			}
+
+			if id, parseErr := strconv.ParseInt(bodyStr, 10, 64); parseErr == nil && id > 0 {
+				return id, nil
+			}
+			return 0, fmt.Errorf("unexpected upload response: %s", bodyStr)
 		}
 
-		if id, parseErr := strconv.ParseInt(bodyStr, 10, 64); parseErr == nil && id > 0 {
-			return id, nil
-		}
-		return 0, fmt.Errorf("unexpected upload response: %s", bodyStr)
+		return 0, fmt.Errorf("upload returned %s: %s", resp.Status, bodyStr)
 	}
 
-	return 0, fmt.Errorf("upload returned %s: %s", resp.Status, bodyStr)
+	return 0, errors.New("exceeded maximum upload retries due to rate limiting")
 }
 
 func Reupload(ctx *context.Context, r *request.Request) {
@@ -219,6 +230,10 @@ func Reupload(ctx *context.Context, r *request.Request) {
 	total := len(r.IDs)
 
 	for idx, gamepassID := range r.IDs {
+		if idx > 0 {
+			// Polite 1.2s delay between gamepass uploads to avoid rate limits
+			time.Sleep(1200 * time.Millisecond)
+		}
 		name, imgBytes := fetchGamepassInfo(httpClient, gamepassID)
 		fmt.Printf("[%d/%d] Uploading '%s' (%d) as T-Shirt to Aisaka...\n", idx+1, total, name, gamepassID)
 
