@@ -6,8 +6,8 @@
     <Item class="Script" referent="1">
       <Properties>
         <string name="Name">Plugin</string>
-        <token name="RunContext">3</token>
-        <string name="Source"><![CDATA[--!strict
+        <token name="RunContext">0</token>
+        <ProtectedString name="Source"><![CDATA[--!strict
 local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
@@ -93,12 +93,12 @@ App.init(ui, plugin)
 plugin.Unloading:Connect(function()
 	ui:Destroy()
 end)
-]]></string>
+]]></ProtectedString>
       </Properties>
       <Item class="ModuleScript" referent="2">
         <Properties>
           <string name="Name">App</string>
-          <string name="Source"><![CDATA[--!strict
+          <ProtectedString name="Source"><![CDATA[--!strict
 local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
@@ -192,12 +192,12 @@ function App.init(ui: UiLibrary.Ui, plugin: Plugin)
 end
 
 return App
-]]></string>
+]]></ProtectedString>
         </Properties>
         <Item class="ModuleScript" referent="3">
           <Properties>
             <string name="Name">ApiDump</string>
-            <string name="Source"><![CDATA[--!strict
+            <ProtectedString name="Source"><![CDATA[--!strict
 local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
@@ -389,13 +389,13 @@ function ApiDump.getProperties(className: string): { string }
 end
 
 return ApiDump
-]]></string>
+]]></ProtectedString>
           </Properties>
         </Item>
         <Item class="ModuleScript" referent="4">
           <Properties>
             <string name="Name">AssetIdFilter</string>
-            <string name="Source"><![CDATA[--!strict
+            <ProtectedString name="Source"><![CDATA[--!strict
 local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
@@ -471,12 +471,12 @@ function AssetIdFilter.replaceIds(filteredIds: { [number]: { Instance } }, idsTo
 end
 
 return AssetIdFilter
-]]></string>
+]]></ProtectedString>
           </Properties>
           <Item class="ModuleScript" referent="5">
             <Properties>
               <string name="Name">ChangeIds</string>
-              <string name="Source"><![CDATA[local _old_require = require
+              <ProtectedString name="Source"><![CDATA[local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
         local moduleName = string.match(target, "([^/]+)$") or target
@@ -556,10 +556,15 @@ export type IdPair = {
     oldId: number
 }
 
--- Whole numeric id token (same idea as setScriptIds). Plain gsub(oldId) can match a
--- digit prefix inside a larger rbxassetid and corrupt the URL.
-local function replaceFullNumberToken(s: string, oldId: number, newId: number): string
-	return string.gsub(s, "%f[%d]" .. tostring(oldId) .. "%f[%D]", tostring(newId))
+-- Whole numeric id token with plain string fallback
+local function replaceFullNumberToken(s: any, oldId: number, newId: number): string
+    if not s then return tostring(newId) end
+    local str = tostring(s)
+    local res, count = string.gsub(str, "%f[%d]" .. tostring(oldId) .. "%f[%D]", tostring(newId))
+    if count == 0 then
+        res = string.gsub(str, tostring(oldId), tostring(newId))
+    end
+    return res
 end
 
 -- Optimized: Do string replacements on smaller chunks to avoid freezing
@@ -570,11 +575,14 @@ local function setScriptIds(scriptInstance: LuaSourceContainer, idsToChange: { I
         return
     end
 
-    -- Batch process replacements more efficiently
     for _, idPair in pairs(idsToChange) do
         local oldId = idPair.oldId
         local newId = idPair.newId
-        source = string.gsub(source, "%f[%d]" .. tostring(oldId) .. "%f[%D]", tostring(newId))
+        local res, count = string.gsub(source, "%f[%d]" .. tostring(oldId) .. "%f[%D]", tostring(newId))
+        if count == 0 then
+            res = string.gsub(source, tostring(oldId), tostring(newId))
+        end
+        source = res
     end
 
     scriptInstance.Source = source
@@ -694,56 +702,73 @@ local instanceIdSetters = {
 }
 
 return function(filteredIds: { [number]: { Instance } }, idsToChange: { IdPair })
-    local waitGroup = WaitGroup.new()
+    local ChangeHistoryService = game:GetService("ChangeHistoryService")
+    pcall(function() ChangeHistoryService:SetWaypoint("AssetReuploader_ChangeIds_Start") end)
+
     local scriptIdChanges = {}
+    local changedCount = 0
 
     for _, idPair in pairs(idsToChange) do
-        local oldId = idPair.oldId
-        local newId = idPair.newId
+        local oldId = tonumber(idPair.oldId) or idPair.oldId
+        local newId = tonumber(idPair.newId) or idPair.newId
 
         local instanceArray = filteredIds[oldId]
-        if not instanceArray then continue end
-
-        for _, instance in pairs(instanceArray) do
-            if instance:IsA("LuaSourceContainer") then
-                if not scriptIdChanges[instance] then scriptIdChanges[instance] = {} end
-                table.insert(scriptIdChanges[instance], idPair)
-                continue
+        if not instanceArray then
+            instanceArray = filteredIds[tostring(oldId)]
+        end
+        if not instanceArray then
+            for k, arr in pairs(filteredIds) do
+                if tonumber(k) == oldId then
+                    instanceArray = arr
+                    break
+                end
             end
+        end
 
-            local className = instance.ClassName
-            local setInstanceId = instanceIdSetters[className]
-            if not setInstanceId then error(tostring(className) .. " is not supported") end
-
-            -- Use task.delay to prevent lag spikes
-            waitGroup:Add(function()
-                task.delay(0, function()
-                    local success, result = pcall(setInstanceId :: any, instance, oldId, newId)
-                    if not success then warn("Failed to change", instance, tostring(oldId) .. " to " .. tostring(newId) .. ":", result) end
-                end)
-            end)
+        if instanceArray then
+            for _, instance in pairs(instanceArray) do
+                if instance:IsA("LuaSourceContainer") then
+                    if not scriptIdChanges[instance] then scriptIdChanges[instance] = {} end
+                    table.insert(scriptIdChanges[instance], idPair)
+                else
+                    local className = instance.ClassName
+                    local setInstanceId = instanceIdSetters[className]
+                    if setInstanceId then
+                        local success, result = pcall(setInstanceId :: any, instance, oldId, newId)
+                        if success then
+                            changedCount = changedCount + 1
+                            print(string.format("[Asset Reuploader] Replaced %s in %s (%s -> %s)", className, instance:GetFullName(), tostring(oldId), tostring(newId)))
+                        else
+                            warn(string.format("[Asset Reuploader] Failed to change %s: %s", instance:GetFullName(), tostring(result)))
+                        end
+                    end
+                end
+            end
+        else
+            warn(string.format("[Asset Reuploader] No instance found in filter map for old ID: %s", tostring(oldId)))
         end
     end
 
     for instance, idPairs in pairs(scriptIdChanges) do
-        waitGroup:Add(function()
-            -- Stagger script updates to prevent freezing
-            task.delay(0, function()
-                local success, result = pcall(setScriptIds, instance, idPairs)
-                if not success then warn("Failed to bulk change", instance, result) end
-            end)
-        end)  
+        local success, result = pcall(setScriptIds, instance, idPairs)
+        if success then
+            changedCount = changedCount + 1
+            print(string.format("[Asset Reuploader] Updated %d ID(s) in script: %s", #idPairs, instance:GetFullName()))
+        else
+            warn(string.format("[Asset Reuploader] Failed to update script %s: %s", instance:GetFullName(), tostring(result)))
+        end
     end
 
-    waitGroup:Wait()
+    pcall(function() ChangeHistoryService:SetWaypoint("AssetReuploader_ChangeIds_End") end)
+    print(string.format("[Asset Reuploader] Successfully replaced %d instances/scripts with new IDs!", changedCount))
 end
-]]></string>
+]]></ProtectedString>
             </Properties>
           </Item>
           <Item class="ModuleScript" referent="6">
             <Properties>
               <string name="Name">GetAssetIds</string>
-              <string name="Source"><![CDATA[--!strict
+              <ProtectedString name="Source"><![CDATA[--!strict
 local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
@@ -939,14 +964,14 @@ return function(filterOptions: FilterOptions): { [number]: { Instance } }
     end
     return idMap
 end
-]]></string>
+]]></ProtectedString>
             </Properties>
           </Item>
         </Item>
         <Item class="ModuleScript" referent="7">
           <Properties>
             <string name="Name">Connection</string>
-            <string name="Source"><![CDATA[--!strict
+            <ProtectedString name="Source"><![CDATA[--!strict
 local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
@@ -1010,63 +1035,62 @@ local function post(port: number, path: string, data: string): string
     return HttpService:PostAsync("http://localhost:" .. tostring(port) .. tostring(path), data)
 end
 
-local function checkConnectionStatus(self: Connection)
-    local connected, data = pcall(get, self._port)
-    if not connected then
-        if self.onDisconnect then self.onDisconnect() end
-        self:Destroy()
-        return
+function Connection.new(port: number)
+    local connected, data = pcall(get, port)
+    if not connected then return nil, nil end
+    
+    local self = {
+        _port = port,
+        _active = true,
+        onDisconnect = nil,
+        onDataRecieved = nil,
+    }
+    
+    self.Send = function(s, path, json)
+        local success, response = pcall(post, self._port, path, json)
+        return success, response
+    end
+    
+    self.Destroy = function(s)
+        self._active = false
+        table.clear(self)
     end
 
-    if self.onDataRecieved then self.onDataRecieved(data :: string) end
-    self._thread = task.delay(1, checkConnectionStatus, self)
-end
+    -- Continuous background polling loop that runs reliably in Studio Edit mode
+    coroutine.wrap(function()
+        while self._active do
+            wait(0.8)
+            if not self._active then break end
 
-local function Send(self: Connection, path: string, JSON: string): (boolean, string)
-    local success, response = pcall(post, self._port, path, JSON)
-    return success :: boolean, response :: string
-end
+            local ok, respData = pcall(get, self._port)
+            if not ok then
+                if self.onDisconnect then
+                    pcall(self.onDisconnect)
+                end
+                self._active = false
+                break
+            end
 
-local function Destroy(self: Connection)
-    coroutine.yield(self._thread)
-    coroutine.close(self._thread)
-    table.clear(self :: any)
-end
+            if respData and #respData > 0 and respData ~= "null\n" and respData ~= "[]\n" and respData ~= "[]" then
+                if self.onDataRecieved then
+                    pcall(self.onDataRecieved, respData)
+                end
+            end
+        end
+    end)()
 
-type Connection = {
-    _port: number,
-    _thread: thread,
-
-	onDisconnect: any,
-	onDataRecieved: any,
-
-	Send: typeof(Send),
-    Destroy: typeof(Destroy),
-}
-
-function Connection.new(port: number): (Connection?, string?)
-    local connected, data = pcall(get :: any, port)
-	if not connected then return nil, nil end
-	
-    local self; self = {
-        _port = port,
-
-        Send = Send,
-        Destroy = Destroy,
-    } :: Connection
-    self._thread = task.delay(1, checkConnectionStatus, self)
-    
-	return self, data ~= "null\n" and (data :: string) or nil
+    local initialData = (data ~= "null\n" and data ~= "[]\n" and data ~= "[]") and data or nil
+    return self, initialData
 end
 
 return Connection
-]]></string>
+]]></ProtectedString>
           </Properties>
         </Item>
         <Item class="ModuleScript" referent="8">
           <Properties>
             <string name="Name">GetFilterOptions</string>
-            <string name="Source"><![CDATA[--!strict
+            <ProtectedString name="Source"><![CDATA[--!strict
 local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
@@ -1141,13 +1165,13 @@ return function(plugin: Plugin, filteredInstances: { Instance }): AssetIdFilter.
         Instances = filteredInstances
     }
 end
-]]></string>
+]]></ProtectedString>
           </Properties>
         </Item>
         <Item class="ModuleScript" referent="9">
           <Properties>
             <string name="Name">Retry</string>
-            <string name="Source"><![CDATA[--!strict
+            <ProtectedString name="Source"><![CDATA[--!strict
 local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
@@ -1209,13 +1233,13 @@ return function(tries, func, ...)
 	end
 	return result[1], table.unpack(result, 2)
 end
-]]></string>
+]]></ProtectedString>
           </Properties>
         </Item>
         <Item class="ModuleScript" referent="10">
           <Properties>
             <string name="Name">ReuploadIds</string>
-            <string name="Source"><![CDATA[--!strict
+            <ProtectedString name="Source"><![CDATA[--!strict
 local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
@@ -1436,13 +1460,13 @@ return function(plugin: any, ui: any, filterOptions: any, assetType: string, pla
         onDataRecieved(response)
     end
 end
-]]></string>
+]]></ProtectedString>
           </Properties>
         </Item>
         <Item class="ModuleScript" referent="11">
           <Properties>
             <string name="Name">StatusCodes</string>
-            <string name="Source"><![CDATA[local _old_require = require
+            <ProtectedString name="Source"><![CDATA[local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
         local moduleName = string.match(target, "([^/]+)$") or target
@@ -1499,7 +1523,7 @@ return {
     ["HTTP 500 (Internal Server Error)"] = "Server Error.",
     ["HTTP 503 (Service Unavailable)"] = "Server is busy."
 }
-]]></string>
+]]></ProtectedString>
           </Properties>
         </Item>
         <Item class="Folder" referent="12">
@@ -1509,7 +1533,7 @@ return {
           <Item class="ModuleScript" referent="13">
             <Properties>
               <string name="Name">Animation</string>
-              <string name="Source"><![CDATA[local _old_require = require
+              <ProtectedString name="Source"><![CDATA[local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
         local moduleName = string.match(target, "([^/]+)$") or target
@@ -1600,13 +1624,13 @@ return function(ui: UiLibrary.Ui, plugin: Plugin)
 		reuploadIds(plugin, ui, filter, "Animation", _G.getPlaceList()) -- forgive me
 	end)
 end
-]]></string>
+]]></ProtectedString>
             </Properties>
           </Item>
           <Item class="ModuleScript" referent="14">
             <Properties>
               <string name="Name">Filter</string>
-              <string name="Source"><![CDATA[--!strict
+              <ProtectedString name="Source"><![CDATA[--!strict
 local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
@@ -1725,13 +1749,13 @@ return function(ui: UiLibrary.Ui, plugin: Plugin)
         textBox.Text = string.gsub(textBox.Text, "%D", "") 
     end)
 end
-]]></string>
+]]></ProtectedString>
             </Properties>
           </Item>
           <Item class="ModuleScript" referent="15">
             <Properties>
               <string name="Name">Gamepass</string>
-              <string name="Source"><![CDATA[local _old_require = require
+              <ProtectedString name="Source"><![CDATA[local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
         local moduleName = string.match(target, "([^/]+)$") or target
@@ -1884,13 +1908,13 @@ return function(ui: any, plugin: Plugin)
         ui:Notify("Notification", "Converted GamePass APIs in " .. tostring(converted) .. " scripts to T-Shirt Asset APIs!")
     end)
 end
-]]></string>
+]]></ProtectedString>
             </Properties>
           </Item>
           <Item class="ModuleScript" referent="16">
             <Properties>
               <string name="Name">Mesh</string>
-              <string name="Source"><![CDATA[local _old_require = require
+              <ProtectedString name="Source"><![CDATA[local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
         local moduleName = string.match(target, "([^/]+)$") or target
@@ -2019,13 +2043,13 @@ return function(ui: UiLibrary.Ui, plugin: Plugin)
         reuploadIds(plugin, ui, filter, "Mesh", _G.getPlaceList()) -- forgive me
 	end)
 end
-]]></string>
+]]></ProtectedString>
             </Properties>
           </Item>
           <Item class="ModuleScript" referent="17">
             <Properties>
               <string name="Name">Replace</string>
-              <string name="Source"><![CDATA[local _old_require = require
+              <ProtectedString name="Source"><![CDATA[local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
         local moduleName = string.match(target, "([^/]+)$") or target
@@ -2157,13 +2181,13 @@ return function(ui: UiLibrary.Ui, plugin: Plugin)
     end)
     replaceButton.instance.LayoutOrder = 2
 end
-]]></string>
+]]></ProtectedString>
             </Properties>
           </Item>
           <Item class="ModuleScript" referent="18">
             <Properties>
               <string name="Name">Settings</string>
-              <string name="Source"><![CDATA[--!strict
+              <ProtectedString name="Source"><![CDATA[--!strict
 local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
@@ -2237,13 +2261,13 @@ return function(ui: UiLibrary.Ui, plugin: Plugin)
         plugin:SetSetting("ExportJSON", state)
     end, plugin:GetSetting("ExportJSON"))
 end
-]]></string>
+]]></ProtectedString>
             </Properties>
           </Item>
           <Item class="ModuleScript" referent="19">
             <Properties>
               <string name="Name">Sound</string>
-              <string name="Source"><![CDATA[local _old_require = require
+              <ProtectedString name="Source"><![CDATA[local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
         local moduleName = string.match(target, "([^/]+)$") or target
@@ -2337,13 +2361,13 @@ return function(ui: UiLibrary.Ui, plugin: Plugin)
 
 
 end
-]]></string>
+]]></ProtectedString>
             </Properties>
           </Item>
           <Item class="ModuleScript" referent="20">
             <Properties>
               <string name="Name">Themes</string>
-              <string name="Source"><![CDATA[--!strict
+              <ProtectedString name="Source"><![CDATA[--!strict
 local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
@@ -2523,14 +2547,14 @@ return function(ui: UiLibrary.Ui, _plugin: Plugin)
 		applyThemeById(result :: string)
 	end)
 end
-]]></string>
+]]></ProtectedString>
             </Properties>
           </Item>
         </Item>
         <Item class="ModuleScript" referent="21">
           <Properties>
             <string name="Name">WaitGroup</string>
-            <string name="Source">--!strict
+            <ProtectedString name="Source">--!strict
 local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
@@ -2623,14 +2647,14 @@ function WaitGroup.new(): WaitGroup
     }
 end
 
-return WaitGroup</string>
+return WaitGroup</ProtectedString>
           </Properties>
         </Item>
       </Item>
       <Item class="ModuleScript" referent="22">
         <Properties>
           <string name="Name">UiLibrary</string>
-          <string name="Source"><![CDATA[--!strict
+          <ProtectedString name="Source"><![CDATA[--!strict
 local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
@@ -2871,7 +2895,7 @@ function UiLibrary.new(parent: Instance, plugin: Plugin): Ui
 end
 
 return UiLibrary
-]]></string>
+]]></ProtectedString>
         </Properties>
         <Item class="Folder" referent="23">
           <Properties>
@@ -5645,7 +5669,7 @@ return UiLibrary
         <Item class="ModuleScript" referent="65">
           <Properties>
             <string name="Name">Tab</string>
-            <string name="Source"><![CDATA[--!strict
+            <ProtectedString name="Source"><![CDATA[--!strict
 local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
@@ -5794,12 +5818,12 @@ function Tab.new(uiFrame: typeof(mainUiFrame), clickedCallback: any, name: strin
 end
 
 return Tab
-]]></string>
+]]></ProtectedString>
           </Properties>
           <Item class="ModuleScript" referent="66">
             <Properties>
               <string name="Name">Button</string>
-              <string name="Source"><![CDATA[--!strict
+              <ProtectedString name="Source"><![CDATA[--!strict
 local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
@@ -5929,13 +5953,13 @@ function Button.new(parent: GuiObject, text: string, callback: any, autoColor: b
 end
 
 return Button
-]]></string>
+]]></ProtectedString>
             </Properties>
           </Item>
           <Item class="ModuleScript" referent="67">
             <Properties>
               <string name="Name">Input</string>
-              <string name="Source">--!strict
+              <ProtectedString name="Source">--!strict
 local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
@@ -6085,13 +6109,13 @@ function Input.new(parent: GuiObject, placeholderText: string, callback: any): I
     return self
 end
 
-return Input</string>
+return Input</ProtectedString>
             </Properties>
           </Item>
           <Item class="ModuleScript" referent="68">
             <Properties>
               <string name="Name">Label</string>
-              <string name="Source"><![CDATA[--!strict
+              <ProtectedString name="Source"><![CDATA[--!strict
 local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
@@ -6192,13 +6216,13 @@ function Label.new(parent: typeof(asset), text: string): Label
 end
 
 return Label
-]]></string>
+]]></ProtectedString>
             </Properties>
           </Item>
           <Item class="ModuleScript" referent="69">
             <Properties>
               <string name="Name">List</string>
-              <string name="Source"><![CDATA[--!strict
+              <ProtectedString name="Source"><![CDATA[--!strict
 local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
@@ -6356,12 +6380,12 @@ function List.new(parent: typeof(tabAsset)): List
 end
 
 return List
-]]></string>
+]]></ProtectedString>
             </Properties>
             <Item class="ModuleScript" referent="70">
               <Properties>
                 <string name="Name">ListElement</string>
-                <string name="Source">--!strict
+                <ProtectedString name="Source">--!strict
 local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
@@ -6526,14 +6550,14 @@ function ListElement.new(parent: typeof(listAsset.ScrollingFrame), removedCallba
     return self
 end
 
-return ListElement</string>
+return ListElement</ProtectedString>
               </Properties>
             </Item>
           </Item>
           <Item class="ModuleScript" referent="71">
             <Properties>
               <string name="Name">Split</string>
-              <string name="Source"><![CDATA[--!strict
+              <ProtectedString name="Source"><![CDATA[--!strict
 local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
@@ -6679,13 +6703,13 @@ function Split.new(parent: GuiObject): Split
 end
 
 return Split
-]]></string>
+]]></ProtectedString>
             </Properties>
           </Item>
           <Item class="ModuleScript" referent="72">
             <Properties>
               <string name="Name">Toggle</string>
-              <string name="Source">--!strict
+              <ProtectedString name="Source">--!strict
 local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
@@ -6830,14 +6854,14 @@ function Toggle.new(parent: GuiObject, text: string, callback: any, defaultState
     return self
 end
 
-return Toggle</string>
+return Toggle</ProtectedString>
             </Properties>
           </Item>
         </Item>
         <Item class="ModuleScript" referent="73">
           <Properties>
             <string name="Name">Theme</string>
-            <string name="Source"><![CDATA[--!strict
+            <ProtectedString name="Source"><![CDATA[--!strict
 local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
@@ -7149,13 +7173,13 @@ function Theme.remove(themeId: string)
 end
 
 return Theme
-]]></string>
+]]></ProtectedString>
           </Properties>
         </Item>
         <Item class="ModuleScript" referent="74">
           <Properties>
             <string name="Name">Tip</string>
-            <string name="Source">--!strict
+            <ProtectedString name="Source">--!strict
 local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
@@ -7273,7 +7297,7 @@ function Tip.new(tipBar: TipBarAsset, text: string): Tip
     return self
 end
 
-return Tip</string>
+return Tip</ProtectedString>
           </Properties>
         </Item>
       </Item>

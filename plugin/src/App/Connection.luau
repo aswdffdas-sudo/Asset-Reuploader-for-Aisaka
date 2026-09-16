@@ -62,53 +62,52 @@ local function post(port: number, path: string, data: string): string
     return HttpService:PostAsync("http://localhost:" .. tostring(port) .. tostring(path), data)
 end
 
-local function checkConnectionStatus(self: Connection)
-    local connected, data = pcall(get, self._port)
-    if not connected then
-        if self.onDisconnect then self.onDisconnect() end
-        self:Destroy()
-        return
+function Connection.new(port: number)
+    local connected, data = pcall(get, port)
+    if not connected then return nil, nil end
+    
+    local self = {
+        _port = port,
+        _active = true,
+        onDisconnect = nil,
+        onDataRecieved = nil,
+    }
+    
+    self.Send = function(s, path, json)
+        local success, response = pcall(post, self._port, path, json)
+        return success, response
+    end
+    
+    self.Destroy = function(s)
+        self._active = false
+        table.clear(self)
     end
 
-    if self.onDataRecieved then self.onDataRecieved(data :: string) end
-    self._thread = task.delay(1, checkConnectionStatus, self)
-end
+    -- Continuous background polling loop that runs reliably in Studio Edit mode
+    coroutine.wrap(function()
+        while self._active do
+            wait(0.8)
+            if not self._active then break end
 
-local function Send(self: Connection, path: string, JSON: string): (boolean, string)
-    local success, response = pcall(post, self._port, path, JSON)
-    return success :: boolean, response :: string
-end
+            local ok, respData = pcall(get, self._port)
+            if not ok then
+                if self.onDisconnect then
+                    pcall(self.onDisconnect)
+                end
+                self._active = false
+                break
+            end
 
-local function Destroy(self: Connection)
-    coroutine.yield(self._thread)
-    coroutine.close(self._thread)
-    table.clear(self :: any)
-end
+            if respData and #respData > 0 and respData ~= "null\n" and respData ~= "[]\n" and respData ~= "[]" then
+                if self.onDataRecieved then
+                    pcall(self.onDataRecieved, respData)
+                end
+            end
+        end
+    end)()
 
-type Connection = {
-    _port: number,
-    _thread: thread,
-
-	onDisconnect: any,
-	onDataRecieved: any,
-
-	Send: typeof(Send),
-    Destroy: typeof(Destroy),
-}
-
-function Connection.new(port: number): (Connection?, string?)
-    local connected, data = pcall(get :: any, port)
-	if not connected then return nil, nil end
-	
-    local self; self = {
-        _port = port,
-
-        Send = Send,
-        Destroy = Destroy,
-    } :: Connection
-    self._thread = task.delay(1, checkConnectionStatus, self)
-    
-	return self, data ~= "null\n" and (data :: string) or nil
+    local initialData = (data ~= "null\n" and data ~= "[]\n" and data ~= "[]") and data or nil
+    return self, initialData
 end
 
 return Connection

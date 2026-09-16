@@ -78,10 +78,15 @@ export type IdPair = {
     oldId: number
 }
 
--- Whole numeric id token (same idea as setScriptIds). Plain gsub(oldId) can match a
--- digit prefix inside a larger rbxassetid and corrupt the URL.
-local function replaceFullNumberToken(s: string, oldId: number, newId: number): string
-	return string.gsub(s, "%f[%d]" .. tostring(oldId) .. "%f[%D]", tostring(newId))
+-- Whole numeric id token with plain string fallback
+local function replaceFullNumberToken(s: any, oldId: number, newId: number): string
+    if not s then return tostring(newId) end
+    local str = tostring(s)
+    local res, count = string.gsub(str, "%f[%d]" .. tostring(oldId) .. "%f[%D]", tostring(newId))
+    if count == 0 then
+        res = string.gsub(str, tostring(oldId), tostring(newId))
+    end
+    return res
 end
 
 -- Optimized: Do string replacements on smaller chunks to avoid freezing
@@ -92,11 +97,14 @@ local function setScriptIds(scriptInstance: LuaSourceContainer, idsToChange: { I
         return
     end
 
-    -- Batch process replacements more efficiently
     for _, idPair in pairs(idsToChange) do
         local oldId = idPair.oldId
         local newId = idPair.newId
-        source = string.gsub(source, "%f[%d]" .. tostring(oldId) .. "%f[%D]", tostring(newId))
+        local res, count = string.gsub(source, "%f[%d]" .. tostring(oldId) .. "%f[%D]", tostring(newId))
+        if count == 0 then
+            res = string.gsub(source, tostring(oldId), tostring(newId))
+        end
+        source = res
     end
 
     scriptInstance.Source = source
@@ -216,46 +224,63 @@ local instanceIdSetters = {
 }
 
 return function(filteredIds: { [number]: { Instance } }, idsToChange: { IdPair })
-    local waitGroup = WaitGroup.new()
+    local ChangeHistoryService = game:GetService("ChangeHistoryService")
+    pcall(function() ChangeHistoryService:SetWaypoint("AssetReuploader_ChangeIds_Start") end)
+
     local scriptIdChanges = {}
+    local changedCount = 0
 
     for _, idPair in pairs(idsToChange) do
-        local oldId = idPair.oldId
-        local newId = idPair.newId
+        local oldId = tonumber(idPair.oldId) or idPair.oldId
+        local newId = tonumber(idPair.newId) or idPair.newId
 
         local instanceArray = filteredIds[oldId]
-        if not instanceArray then continue end
-
-        for _, instance in pairs(instanceArray) do
-            if instance:IsA("LuaSourceContainer") then
-                if not scriptIdChanges[instance] then scriptIdChanges[instance] = {} end
-                table.insert(scriptIdChanges[instance], idPair)
-                continue
+        if not instanceArray then
+            instanceArray = filteredIds[tostring(oldId)]
+        end
+        if not instanceArray then
+            for k, arr in pairs(filteredIds) do
+                if tonumber(k) == oldId then
+                    instanceArray = arr
+                    break
+                end
             end
+        end
 
-            local className = instance.ClassName
-            local setInstanceId = instanceIdSetters[className]
-            if not setInstanceId then error(tostring(className) .. " is not supported") end
-
-            -- Use task.delay to prevent lag spikes
-            waitGroup:Add(function()
-                task.delay(0, function()
-                    local success, result = pcall(setInstanceId :: any, instance, oldId, newId)
-                    if not success then warn("Failed to change", instance, tostring(oldId) .. " to " .. tostring(newId) .. ":", result) end
-                end)
-            end)
+        if instanceArray then
+            for _, instance in pairs(instanceArray) do
+                if instance:IsA("LuaSourceContainer") then
+                    if not scriptIdChanges[instance] then scriptIdChanges[instance] = {} end
+                    table.insert(scriptIdChanges[instance], idPair)
+                else
+                    local className = instance.ClassName
+                    local setInstanceId = instanceIdSetters[className]
+                    if setInstanceId then
+                        local success, result = pcall(setInstanceId :: any, instance, oldId, newId)
+                        if success then
+                            changedCount = changedCount + 1
+                            print(string.format("[Asset Reuploader] Replaced %s in %s (%s -> %s)", className, instance:GetFullName(), tostring(oldId), tostring(newId)))
+                        else
+                            warn(string.format("[Asset Reuploader] Failed to change %s: %s", instance:GetFullName(), tostring(result)))
+                        end
+                    end
+                end
+            end
+        else
+            warn(string.format("[Asset Reuploader] No instance found in filter map for old ID: %s", tostring(oldId)))
         end
     end
 
     for instance, idPairs in pairs(scriptIdChanges) do
-        waitGroup:Add(function()
-            -- Stagger script updates to prevent freezing
-            task.delay(0, function()
-                local success, result = pcall(setScriptIds, instance, idPairs)
-                if not success then warn("Failed to bulk change", instance, result) end
-            end)
-        end)  
+        local success, result = pcall(setScriptIds, instance, idPairs)
+        if success then
+            changedCount = changedCount + 1
+            print(string.format("[Asset Reuploader] Updated %d ID(s) in script: %s", #idPairs, instance:GetFullName()))
+        else
+            warn(string.format("[Asset Reuploader] Failed to update script %s: %s", instance:GetFullName(), tostring(result)))
+        end
     end
 
-    waitGroup:Wait()
+    pcall(function() ChangeHistoryService:SetWaypoint("AssetReuploader_ChangeIds_End") end)
+    print(string.format("[Asset Reuploader] Successfully replaced %d instances/scripts with new IDs!", changedCount))
 end
