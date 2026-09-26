@@ -92,7 +92,7 @@ func uploadAudioToRevival(c *roblox.Client, name string, data *bytes.Buffer) (*p
 		domain = "octane.wtf"
 	}
 
-	uploadURL := fmt.Sprintf("https://www.%s/develop/upload", domain)
+	uploadURL := fmt.Sprintf("https://%s/develop/upload", strings.TrimPrefix(domain, "www."))
 
 	// Step 1: Probe for CSRF
 	probeReq, err := http.NewRequest("POST", uploadURL, bytes.NewReader([]byte("{}")))

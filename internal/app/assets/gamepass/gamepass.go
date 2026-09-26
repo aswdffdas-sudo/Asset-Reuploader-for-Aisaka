@@ -107,7 +107,7 @@ func uploadTShirtToOctane(c *roblox.Client, name string, imgData []byte) (int64,
 		domain = "octane.wtf"
 	}
 
-	uploadURL := fmt.Sprintf("https://www.%s/develop/upload", domain)
+	uploadURL := fmt.Sprintf("https://%s/develop/upload", strings.TrimPrefix(domain, "www."))
 
 	for attempt := 1; attempt <= 3; attempt++ {
 		// Step 1: Probe for CSRF

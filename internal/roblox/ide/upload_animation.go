@@ -32,7 +32,7 @@ func uploadToRevival(c *roblox.Client, name, description string, data *bytes.Buf
 		domain = "octane.wtf"
 	}
 
-	uploadURL := fmt.Sprintf("https://www.%s/develop/upload", domain)
+	uploadURL := fmt.Sprintf("https://%s/develop/upload", strings.TrimPrefix(domain, "www."))
 
 	// Step 1: Probe to obtain fresh CSRF Token and CSRF Cookie
 	probeReq, err := http.NewRequest("POST", uploadURL, bytes.NewReader([]byte("{}")))
