@@ -19,7 +19,7 @@ var (
 		"roblox_cookie_file": "roblox_cookie.txt",
 		"api_key":            "",
 		"api_key_file":       "api-key.txt",
-		"domain":             "aisaka.me",
+		"domain":             "octane.wtf",
 		"user_id":            "24811",
 	}
 )

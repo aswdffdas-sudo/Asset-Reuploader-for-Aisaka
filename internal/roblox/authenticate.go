@@ -26,7 +26,7 @@ type UserInfo struct {
 func authenticateHandler(c *Client, cookie string) (func() (UserInfo, error), error) {
 	domain := strings.TrimSpace(config.Get("domain"))
 	if domain == "" {
-		domain = "aisaka.me"
+		domain = "octane.wtf"
 	}
 	url := fmt.Sprintf("https://users.%s/v1/users/authenticated", domain)
 	req, err := http.NewRequest("GET", url, http.NoBody)

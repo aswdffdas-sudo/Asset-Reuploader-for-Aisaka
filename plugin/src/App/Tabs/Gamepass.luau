@@ -121,7 +121,7 @@ return function(ui: any, plugin: Plugin)
             Instances = getGameDescendants()
         }
 
-        ui:Notify("Notification", "Found " .. tostring(#gamepassIds) .. " Gamepass IDs! Reuploading as T-Shirts to Aisaka...")
+        ui:Notify("Notification", "Found " .. tostring(#gamepassIds) .. " Gamepass IDs! Reuploading as T-Shirts to Octane...")
         reuploadIds(plugin, ui, filter, "Gamepass", gamepassIds)
     end)
 

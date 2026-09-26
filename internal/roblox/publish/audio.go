@@ -89,7 +89,7 @@ func newUploadAudioRequest(name string, data *bytes.Buffer, groupID ...int64) (*
 func uploadAudioToRevival(c *roblox.Client, name string, data *bytes.Buffer) (*publishAudioResponse, error) {
 	domain := strings.TrimSpace(config.Get("domain"))
 	if domain == "" {
-		domain = "aisaka.me"
+		domain = "octane.wtf"
 	}
 
 	uploadURL := fmt.Sprintf("https://www.%s/develop/upload", domain)
@@ -104,7 +104,7 @@ func uploadAudioToRevival(c *roblox.Client, name string, data *bytes.Buffer) (*p
 
 	probeResp, err := c.DoRequest(probeReq)
 	if err != nil {
-		return nil, fmt.Errorf("Aisaka CSRF probe failed: %w", err)
+		return nil, fmt.Errorf("Octane CSRF probe failed: %w", err)
 	}
 	csrfToken := probeResp.Header.Get("X-CSRF-Token")
 	if csrfToken == "" {

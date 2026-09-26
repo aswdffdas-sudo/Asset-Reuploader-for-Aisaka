@@ -29,7 +29,7 @@ var UploadAnimationErrors = struct {
 func uploadToRevival(c *roblox.Client, name, description string, data *bytes.Buffer) (int64, error) {
 	domain := strings.TrimSpace(config.Get("domain"))
 	if domain == "" {
-		domain = "aisaka.me"
+		domain = "octane.wtf"
 	}
 
 	uploadURL := fmt.Sprintf("https://www.%s/develop/upload", domain)

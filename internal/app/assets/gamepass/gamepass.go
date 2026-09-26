@@ -101,10 +101,10 @@ func fetchGamepassInfo(client *http.Client, gamepassID int64) (string, []byte) {
 	return name, imgData
 }
 
-func uploadTShirtToAisaka(c *roblox.Client, name string, imgData []byte) (int64, error) {
+func uploadTShirtToOctane(c *roblox.Client, name string, imgData []byte) (int64, error) {
 	domain := strings.TrimSpace(config.Get("domain"))
 	if domain == "" {
-		domain = "aisaka.me"
+		domain = "octane.wtf"
 	}
 
 	uploadURL := fmt.Sprintf("https://www.%s/develop/upload", domain)
@@ -120,7 +120,7 @@ func uploadTShirtToAisaka(c *roblox.Client, name string, imgData []byte) (int64,
 
 		probeResp, err := c.DoRequest(probeReq)
 		if err != nil {
-			return 0, fmt.Errorf("Aisaka CSRF probe failed: %w", err)
+			return 0, fmt.Errorf("Octane CSRF probe failed: %w", err)
 		}
 		csrfToken := probeResp.Header.Get("X-CSRF-Token")
 		if csrfToken == "" {
@@ -134,7 +134,7 @@ func uploadTShirtToAisaka(c *roblox.Client, name string, imgData []byte) (int64,
 		w := multipart.NewWriter(&b)
 
 		_ = w.WriteField("name", name)
-		_ = w.WriteField("assetType", "2") // 2 = T-Shirt on Aisaka develop?View=2
+		_ = w.WriteField("assetType", "2") // 2 = T-Shirt on Octane develop?View=2
 
 		h := make(textproto.MIMEHeader)
 		h.Set("Content-Disposition", fmt.Sprintf(`form-data; name="file"; filename="%s.png"`, name))
@@ -183,7 +183,7 @@ func uploadTShirtToAisaka(c *roblox.Client, name string, imgData []byte) (int64,
 		bodyStr := strings.TrimSpace(string(body))
 
 		if resp.StatusCode == http.StatusTooManyRequests || strings.Contains(strings.ToLower(bodyStr), "too many") {
-			fmt.Printf("Rate limit hit on Aisaka for '%s'. Backing off for 4s (attempt %d/3)...\n", name, attempt)
+			fmt.Printf("Rate limit hit on Octane for '%s'. Backing off for 4s (attempt %d/3)...\n", name, attempt)
 			time.Sleep(4 * time.Second)
 			continue
 		}
@@ -224,7 +224,7 @@ func Reupload(ctx *context.Context, r *request.Request) {
 	client := ctx.Client
 	resp := ctx.Response
 
-	logger.Println("Reuploading gamepasses as T-Shirts to Aisaka (develop?View=2)...")
+	logger.Println("Reuploading gamepasses as T-Shirts to Octane (develop?View=2)...")
 
 	httpClient := &http.Client{Timeout: 15 * time.Second}
 	total := len(r.IDs)
@@ -235,15 +235,15 @@ func Reupload(ctx *context.Context, r *request.Request) {
 			time.Sleep(1200 * time.Millisecond)
 		}
 		name, imgBytes := fetchGamepassInfo(httpClient, gamepassID)
-		fmt.Printf("[%d/%d] Uploading '%s' (%d) as T-Shirt to Aisaka...\n", idx+1, total, name, gamepassID)
+		fmt.Printf("[%d/%d] Uploading '%s' (%d) as T-Shirt to Octane...\n", idx+1, total, name, gamepassID)
 
-		newAssetID, err := uploadTShirtToAisaka(client, name, imgBytes)
+		newAssetID, err := uploadTShirtToOctane(client, name, imgBytes)
 		if err != nil {
 			color.Error.Println(fmt.Sprintf("[%d/%d] Failed to upload '%s' (%d): %v", idx+1, total, name, gamepassID, err))
 			continue
 		}
 
-		color.Success.Println(fmt.Sprintf("[%d/%d] Successfully uploaded '%s'! New Aisaka T-Shirt ID: %d", idx+1, total, name, newAssetID))
+		color.Success.Println(fmt.Sprintf("[%d/%d] Successfully uploaded '%s'! New Octane T-Shirt ID: %d", idx+1, total, name, newAssetID))
 		resp.AddItem(response.ResponseItem{
 			OldID: gamepassID,
 			NewID: newAssetID,
