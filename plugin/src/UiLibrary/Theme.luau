@@ -29,7 +29,7 @@ local function require(target)
 end
 
 local _unpack = unpack
-local task = task or {
+local task = {
     spawn = function(fn, ...)
         coroutine.wrap(fn)(...)
     end,
@@ -211,11 +211,20 @@ local function normalizeRawTheme(rawTheme: RawTheme, themeId: string): Theme
 end
 
 local function preloadThemeAssets(theme: Theme)
-	local assets = {
-		theme.ForegroundImage, theme.BackgroundImage, theme.ToggleImage, theme.TipImage,
-		theme.XImage, theme.NotificationImage, theme.NotificationBackgroundImage
-	}
-	task.spawn(ContentProvider.PreloadAsync, ContentProvider, assets)
+	pcall(function()
+		local assets = {}
+		for _, img in ipairs({
+			theme.ForegroundImage, theme.BackgroundImage, theme.ToggleImage, theme.TipImage,
+			theme.XImage, theme.NotificationImage, theme.NotificationBackgroundImage
+		}) do
+			if img and img ~= "" and string.find(tostring(img), "rbxassetid") then
+				table.insert(assets, img)
+			end
+		end
+		if #assets > 0 then
+			ContentProvider:PreloadAsync(assets)
+		end
+	end)
 end
 
 local function save()

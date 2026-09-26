@@ -28,7 +28,7 @@ local function require(target)
 end
 
 local _unpack = unpack
-local task = task or {
+local task = {
     spawn = function(fn, ...)
         coroutine.wrap(fn)(...)
     end,
