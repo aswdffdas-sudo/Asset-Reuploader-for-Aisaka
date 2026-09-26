@@ -72,6 +72,9 @@ return function(ui: UiLibrary.Ui, plugin: Plugin)
     tab:CreateButton("Reupload", function()
         local filter = getFilterOptions(plugin, getGameDescendants())
         table.insert(filter.WhitelistedInstances, "Sound")
+        if not table.find(filter.WhitelistedInstances, "LuaSourceContainer") then
+            table.insert(filter.WhitelistedInstances, "LuaSourceContainer")
+        end
 
 		reuploadIds(plugin, ui, filter, "Sound", _G.getPlaceList()) -- forgive me
 	end)

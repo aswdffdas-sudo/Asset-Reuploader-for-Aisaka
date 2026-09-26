@@ -73,13 +73,27 @@ export type IdPair = {
     oldId: number
 }
 
--- Whole numeric id token with plain string fallback
-local function replaceFullNumberToken(s: any, oldId: number, newId: number): string
-    if not s then return tostring(newId) end
+local function idToString(id: any): string
+    if type(id) == "string" and string.match(id, "^%d+$") then
+        return id
+    end
+    local n = tonumber(id)
+    if n then
+        return string.format("%.0f", n)
+    end
+    return tostring(id or "")
+end
+
+-- Whole numeric id token with plain string fallback (safe from Lua 5.1 scientific notation)
+local function replaceFullNumberToken(s: any, oldId: any, newId: any): string
+    if not s then return idToString(newId) end
     local str = tostring(s)
-    local res, count = string.gsub(str, "%f[%d]" .. tostring(oldId) .. "%f[%D]", tostring(newId))
+    local oldStr = idToString(oldId)
+    local newStr = idToString(newId)
+
+    local res, count = string.gsub(str, "%f[%d]" .. oldStr .. "%f[%D]", newStr)
     if count == 0 then
-        res = string.gsub(str, tostring(oldId), tostring(newId))
+        res = string.gsub(str, oldStr, newStr)
     end
     return res
 end
@@ -93,11 +107,11 @@ local function setScriptIds(scriptInstance: LuaSourceContainer, idsToChange: { I
     end
 
     for _, idPair in pairs(idsToChange) do
-        local oldId = idPair.oldId
-        local newId = idPair.newId
-        local res, count = string.gsub(source, "%f[%d]" .. tostring(oldId) .. "%f[%D]", tostring(newId))
+        local oldStr = idToString(idPair.oldId)
+        local newStr = idToString(idPair.newId)
+        local res, count = string.gsub(source, "%f[%d]" .. oldStr .. "%f[%D]", newStr)
         if count == 0 then
-            res = string.gsub(source, tostring(oldId), tostring(newId))
+            res = string.gsub(source, oldStr, newStr)
         end
         source = res
     end
@@ -254,7 +268,7 @@ return function(filteredIds: { [number]: { Instance } }, idsToChange: { IdPair }
                         local success, result = pcall(setInstanceId , instance, oldId, newId)
                         if success then
                             changedCount = changedCount + 1
-                            print(string.format("[Asset Reuploader] Replaced %s in %s (%s -> %s)", className, instance:GetFullName(), tostring(oldId), tostring(newId)))
+                            print(string.format("[Asset Reuploader] Replaced %s in %s (%s -> %s)", className, instance:GetFullName(), idToString(oldId), idToString(newId)))
                         else
                             warn(string.format("[Asset Reuploader] Failed to change %s: %s", instance:GetFullName(), tostring(result)))
                         end

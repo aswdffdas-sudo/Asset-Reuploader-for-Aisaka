@@ -76,20 +76,30 @@ local function pickBestValidAssetId(str: string): number?
 	return best
 end
 
-local function getId(filteredInstance: Instance, possibleId: any): { [number]: { Instance } }
+local function getId(filteredInstance: Instance, possibleId: any): { [any]: { Instance } }
     local id = tonumber(possibleId)
     if not id or not isValidId(id) then return {} end
 
-    return { [id] = { filteredInstance } }
+    local idStr = string.format("%.0f", id)
+    local list = { filteredInstance }
+    return {
+        [id] = list,
+        [idStr] = list
+    }
 end
 
-local function getStringIds(filteredInstance: Instance, str: string): { [number]: { Instance } }
+local function getStringIds(filteredInstance: Instance, str: string): { [any]: { Instance } }
     local idMap = {}
 	for matchedString in string.gmatch(str, "%d+") do
 		local id = tonumber(matchedString)
-		if not id or idMap[id] or not isValidId(id) then continue end
+		if not id or not isValidId(id) then continue end
 
-		idMap[id] = { filteredInstance }
+		local idStr = string.format("%.0f", id)
+		if idMap[id] or idMap[idStr] then continue end
+
+		local list = { filteredInstance }
+		idMap[id] = list
+		idMap[idStr] = list
 	end
     return idMap
 end
