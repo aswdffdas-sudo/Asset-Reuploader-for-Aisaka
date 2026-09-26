@@ -1,6 +1,4 @@
-<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.roblox.com/roblox.xsd" version="4">
-	<External>null</External>
-	<External>nil</External>
+<roblox version="4">
   <Item class="Folder" referent="0">
     <Properties>
       <string name="Name">AssetReuploader</string>
@@ -8,7 +6,8 @@
     <Item class="Script" referent="1">
       <Properties>
         <string name="Name">Plugin</string>
-        <ProtectedString name="Source">--!strict
+        
+        <ProtectedString name="Source"><![CDATA[--!strict
 local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
@@ -94,12 +93,12 @@ App.init(ui, plugin)
 plugin.Unloading:Connect(function()
 	ui:Destroy()
 end)
-</ProtectedString>
+]]></ProtectedString>
       </Properties>
       <Item class="ModuleScript" referent="2">
         <Properties>
           <string name="Name">App</string>
-          <ProtectedString name="Source">--!strict
+          <ProtectedString name="Source"><![CDATA[--!strict
 local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
@@ -193,12 +192,12 @@ function App.init(ui: UiLibrary.Ui, plugin: Plugin)
 end
 
 return App
-</ProtectedString>
+]]></ProtectedString>
         </Properties>
         <Item class="ModuleScript" referent="3">
           <Properties>
             <string name="Name">ApiDump</string>
-            <ProtectedString name="Source">--!strict
+            <ProtectedString name="Source"><![CDATA[--!strict
 local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
@@ -380,7 +379,7 @@ function ApiDump.getProperties(className: string): { string }
 		table.insert(properties, member.Name)
 	end
 	
-	if class.Superclass ~= "&lt;&lt;&lt;ROOT&gt;&gt;&gt;" then
+	if class.Superclass ~= "<<<ROOT>>>" then
 		for _, property in pairs(ApiDump.getProperties(class.Superclass)) do
 			table.insert(properties, property)
 		end
@@ -390,13 +389,13 @@ function ApiDump.getProperties(className: string): { string }
 end
 
 return ApiDump
-</ProtectedString>
+]]></ProtectedString>
           </Properties>
         </Item>
         <Item class="ModuleScript" referent="4">
           <Properties>
             <string name="Name">AssetIdFilter</string>
-            <ProtectedString name="Source">--!strict
+            <ProtectedString name="Source"><![CDATA[--!strict
 local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
@@ -472,12 +471,12 @@ function AssetIdFilter.replaceIds(filteredIds: { [number]: { Instance } }, idsTo
 end
 
 return AssetIdFilter
-</ProtectedString>
+]]></ProtectedString>
           </Properties>
           <Item class="ModuleScript" referent="5">
             <Properties>
               <string name="Name">ChangeIds</string>
-              <ProtectedString name="Source">local _old_require = require
+              <ProtectedString name="Source"><![CDATA[local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
         local moduleName = string.match(target, "([^/]+)$") or target
@@ -738,7 +737,7 @@ return function(filteredIds: { [number]: { Instance } }, idsToChange: { IdPair }
                         local success, result = pcall(setInstanceId :: any, instance, oldId, newId)
                         if success then
                             changedCount = changedCount + 1
-                            print(string.format("[Asset Reuploader] Replaced %s in %s (%s -&gt; %s)", className, instance:GetFullName(), tostring(oldId), tostring(newId)))
+                            print(string.format("[Asset Reuploader] Replaced %s in %s (%s -> %s)", className, instance:GetFullName(), tostring(oldId), tostring(newId)))
                         else
                             warn(string.format("[Asset Reuploader] Failed to change %s: %s", instance:GetFullName(), tostring(result)))
                         end
@@ -763,13 +762,13 @@ return function(filteredIds: { [number]: { Instance } }, idsToChange: { IdPair }
     pcall(function() ChangeHistoryService:SetWaypoint("AssetReuploader_ChangeIds_End") end)
     print(string.format("[Asset Reuploader] Successfully replaced %d instances/scripts with new IDs!", changedCount))
 end
-</ProtectedString>
+]]></ProtectedString>
             </Properties>
           </Item>
           <Item class="ModuleScript" referent="6">
             <Properties>
               <string name="Name">GetAssetIds</string>
-              <ProtectedString name="Source">--!strict
+              <ProtectedString name="Source"><![CDATA[--!strict
 local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
@@ -831,10 +830,10 @@ local function isValidId(id: number): boolean
 	if id == 0 or id % 1 ~= 0 then return false end
 
 	local idLength = math.floor(math.log10(math.abs(id))) + 1
-	return idLength &gt;= 7 and idLength &lt;= 15 -- 7 is minimum length requirement for develop get assets info endpoint do not change
+	return idLength >= 7 and idLength <= 15 -- 7 is minimum length requirement for develop get assets info endpoint do not change
 end
 
--- First %d+ in a URL is often wrong (e.g. ?version=1&amp;id=12345678). Prefer the longest
+-- First %d+ in a URL is often wrong (e.g. ?version=1&id=12345678). Prefer the longest
 -- digit run that passes isValidId so we do not drop animations from the reupload list.
 local function pickBestValidAssetId(str: string): number?
 	local best: number? = nil
@@ -843,7 +842,7 @@ local function pickBestValidAssetId(str: string): number?
 		local id = tonumber(matched)
 		if id and isValidId(id) then
 			local len = #matched
-			if len &gt; bestLen or (len == bestLen and best ~= nil and id &gt; best) then
+			if len > bestLen or (len == bestLen and best ~= nil and id > best) then
 				bestLen = len
 				best = id
 			end
@@ -965,14 +964,14 @@ return function(filterOptions: FilterOptions): { [number]: { Instance } }
     end
     return idMap
 end
-</ProtectedString>
+]]></ProtectedString>
             </Properties>
           </Item>
         </Item>
         <Item class="ModuleScript" referent="7">
           <Properties>
             <string name="Name">Connection</string>
-            <ProtectedString name="Source">--!strict
+            <ProtectedString name="Source"><![CDATA[--!strict
 local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
@@ -1072,7 +1071,7 @@ function Connection.new(port: number)
                 break
             end
 
-            if respData and #respData &gt; 0 and respData ~= "null\n" and respData ~= "[]\n" and respData ~= "[]" then
+            if respData and #respData > 0 and respData ~= "null\n" and respData ~= "[]\n" and respData ~= "[]" then
                 if self.onDataRecieved then
                     pcall(self.onDataRecieved, respData)
                 end
@@ -1085,13 +1084,13 @@ function Connection.new(port: number)
 end
 
 return Connection
-</ProtectedString>
+]]></ProtectedString>
           </Properties>
         </Item>
         <Item class="ModuleScript" referent="8">
           <Properties>
             <string name="Name">GetFilterOptions</string>
-            <ProtectedString name="Source">--!strict
+            <ProtectedString name="Source"><![CDATA[--!strict
 local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
@@ -1166,13 +1165,13 @@ return function(plugin: Plugin, filteredInstances: { Instance }): AssetIdFilter.
         Instances = filteredInstances
     }
 end
-</ProtectedString>
+]]></ProtectedString>
           </Properties>
         </Item>
         <Item class="ModuleScript" referent="9">
           <Properties>
             <string name="Name">Retry</string>
-            <ProtectedString name="Source">--!strict
+            <ProtectedString name="Source"><![CDATA[--!strict
 local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
@@ -1234,13 +1233,13 @@ return function(tries, func, ...)
 	end
 	return result[1], table.unpack(result, 2)
 end
-</ProtectedString>
+]]></ProtectedString>
           </Properties>
         </Item>
         <Item class="ModuleScript" referent="10">
           <Properties>
             <string name="Name">ReuploadIds</string>
-            <ProtectedString name="Source">--!strict
+            <ProtectedString name="Source"><![CDATA[--!strict
 local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
@@ -1461,13 +1460,13 @@ return function(plugin: any, ui: any, filterOptions: any, assetType: string, pla
         onDataRecieved(response)
     end
 end
-</ProtectedString>
+]]></ProtectedString>
           </Properties>
         </Item>
         <Item class="ModuleScript" referent="11">
           <Properties>
             <string name="Name">StatusCodes</string>
-            <ProtectedString name="Source">local _old_require = require
+            <ProtectedString name="Source"><![CDATA[local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
         local moduleName = string.match(target, "([^/]+)$") or target
@@ -1524,7 +1523,7 @@ return {
     ["HTTP 500 (Internal Server Error)"] = "Server Error.",
     ["HTTP 503 (Service Unavailable)"] = "Server is busy."
 }
-</ProtectedString>
+]]></ProtectedString>
           </Properties>
         </Item>
         <Item class="Folder" referent="12">
@@ -1534,7 +1533,7 @@ return {
           <Item class="ModuleScript" referent="13">
             <Properties>
               <string name="Name">Animation</string>
-              <ProtectedString name="Source">local _old_require = require
+              <ProtectedString name="Source"><![CDATA[local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
         local moduleName = string.match(target, "([^/]+)$") or target
@@ -1625,13 +1624,13 @@ return function(ui: UiLibrary.Ui, plugin: Plugin)
 		reuploadIds(plugin, ui, filter, "Animation", _G.getPlaceList()) -- forgive me
 	end)
 end
-</ProtectedString>
+]]></ProtectedString>
             </Properties>
           </Item>
           <Item class="ModuleScript" referent="14">
             <Properties>
               <string name="Name">Filter</string>
-              <ProtectedString name="Source">--!strict
+              <ProtectedString name="Source"><![CDATA[--!strict
 local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
@@ -1750,13 +1749,13 @@ return function(ui: UiLibrary.Ui, plugin: Plugin)
         textBox.Text = string.gsub(textBox.Text, "%D", "") 
     end)
 end
-</ProtectedString>
+]]></ProtectedString>
             </Properties>
           </Item>
           <Item class="ModuleScript" referent="15">
             <Properties>
               <string name="Name">Gamepass</string>
-              <ProtectedString name="Source">local _old_require = require
+              <ProtectedString name="Source"><![CDATA[local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
         local moduleName = string.match(target, "([^/]+)$") or target
@@ -1879,11 +1878,11 @@ return function(ui: any, plugin: Plugin)
             Instances = getGameDescendants()
         }
 
-        ui:Notify("Notification", "Found " .. tostring(#gamepassIds) .. " Gamepass IDs! Reuploading as T-Shirts to Aisaka...")
+        ui:Notify("Notification", "Found " .. tostring(#gamepassIds) .. " Gamepass IDs! Reuploading as T-Shirts to Octane...")
         reuploadIds(plugin, ui, filter, "Gamepass", gamepassIds)
     end)
 
-    tab:CreateButton("Convert APIs (GamePass -&gt; T-Shirt)", function()
+    tab:CreateButton("Convert APIs (GamePass -> T-Shirt)", function()
         local services = {"Workspace", "ReplicatedStorage", "ServerScriptService", "ServerStorage", "StarterGui", "StarterPack", "StarterPlayer"}
         local converted = 0
         for _, sName in ipairs(services) do
@@ -1909,13 +1908,13 @@ return function(ui: any, plugin: Plugin)
         ui:Notify("Notification", "Converted GamePass APIs in " .. tostring(converted) .. " scripts to T-Shirt Asset APIs!")
     end)
 end
-</ProtectedString>
+]]></ProtectedString>
             </Properties>
           </Item>
           <Item class="ModuleScript" referent="16">
             <Properties>
               <string name="Name">Mesh</string>
-              <ProtectedString name="Source">local _old_require = require
+              <ProtectedString name="Source"><![CDATA[local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
         local moduleName = string.match(target, "([^/]+)$") or target
@@ -2044,13 +2043,13 @@ return function(ui: UiLibrary.Ui, plugin: Plugin)
         reuploadIds(plugin, ui, filter, "Mesh", _G.getPlaceList()) -- forgive me
 	end)
 end
-</ProtectedString>
+]]></ProtectedString>
             </Properties>
           </Item>
           <Item class="ModuleScript" referent="17">
             <Properties>
               <string name="Name">Replace</string>
-              <ProtectedString name="Source">local _old_require = require
+              <ProtectedString name="Source"><![CDATA[local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
         local moduleName = string.match(target, "([^/]+)$") or target
@@ -2182,13 +2181,13 @@ return function(ui: UiLibrary.Ui, plugin: Plugin)
     end)
     replaceButton.instance.LayoutOrder = 2
 end
-</ProtectedString>
+]]></ProtectedString>
             </Properties>
           </Item>
           <Item class="ModuleScript" referent="18">
             <Properties>
               <string name="Name">Settings</string>
-              <ProtectedString name="Source">--!strict
+              <ProtectedString name="Source"><![CDATA[--!strict
 local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
@@ -2250,7 +2249,7 @@ return function(ui: UiLibrary.Ui, plugin: Plugin)
         local newPort = tonumber(input)
         if not newPort then return end
 
-        if newPort &lt; 1024 or newPort &gt; 49151 then
+        if newPort < 1024 or newPort > 49151 then
             ui:Notify("Notification", "Port has to be between 1024-49151.")
             return
         end
@@ -2262,13 +2261,13 @@ return function(ui: UiLibrary.Ui, plugin: Plugin)
         plugin:SetSetting("ExportJSON", state)
     end, plugin:GetSetting("ExportJSON"))
 end
-</ProtectedString>
+]]></ProtectedString>
             </Properties>
           </Item>
           <Item class="ModuleScript" referent="19">
             <Properties>
               <string name="Name">Sound</string>
-              <ProtectedString name="Source">local _old_require = require
+              <ProtectedString name="Source"><![CDATA[local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
         local moduleName = string.match(target, "([^/]+)$") or target
@@ -2362,13 +2361,13 @@ return function(ui: UiLibrary.Ui, plugin: Plugin)
 
 
 end
-</ProtectedString>
+]]></ProtectedString>
             </Properties>
           </Item>
           <Item class="ModuleScript" referent="20">
             <Properties>
               <string name="Name">Themes</string>
-              <ProtectedString name="Source">--!strict
+              <ProtectedString name="Source"><![CDATA[--!strict
 local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
@@ -2548,14 +2547,14 @@ return function(ui: UiLibrary.Ui, _plugin: Plugin)
 		applyThemeById(result :: string)
 	end)
 end
-</ProtectedString>
+]]></ProtectedString>
             </Properties>
           </Item>
         </Item>
         <Item class="ModuleScript" referent="21">
           <Properties>
             <string name="Name">WaitGroup</string>
-            <ProtectedString name="Source">--!strict
+            <ProtectedString name="Source"><![CDATA[--!strict
 local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
@@ -2648,14 +2647,14 @@ function WaitGroup.new(): WaitGroup
     }
 end
 
-return WaitGroup</ProtectedString>
+return WaitGroup]]></ProtectedString>
           </Properties>
         </Item>
       </Item>
       <Item class="ModuleScript" referent="22">
         <Properties>
           <string name="Name">UiLibrary</string>
-          <ProtectedString name="Source">--!strict
+          <ProtectedString name="Source"><![CDATA[--!strict
 local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
@@ -2744,7 +2743,7 @@ local function CreateTab(self: Ui, name: string): Tab.Tab
 	local padding = topbar.Frame.UIPadding
 	local gridLayout = topbar.Frame.UIGridLayout
 	local tabCount = #topbar.Frame:GetChildren() - 2
-	gridLayout.CellSize = UDim2.new(1 / tabCount, tabCount &gt; 1 and -2 or 0, 1, 0)
+	gridLayout.CellSize = UDim2.new(1 / tabCount, tabCount > 1 and -2 or 0, 1, 0)
 
 	local isEvenTabs = tabCount % 2
 	padding.PaddingRight = UDim.new(0, (2 + isEvenTabs) + math.max(0, tabCount - 3 - isEvenTabs))
@@ -2896,14 +2895,16 @@ function UiLibrary.new(parent: Instance, plugin: Plugin): Ui
 end
 
 return UiLibrary
-</ProtectedString>
+]]></ProtectedString>
         </Properties>
         <Item class="Folder" referent="23">
           <Properties>
             <string name="Name">Assets</string>
-            <BinaryString name="AttributesSerialize" />
+            <BinaryString name="AttributesSerialize"></BinaryString>
+            <SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
+            <bool name="DefinesCapabilities">false</bool>
             <int64 name="SourceAssetId">-1</int64>
-            <BinaryString name="Tags" />
+            <BinaryString name="Tags"></BinaryString>
           </Properties>
           <Item class="Frame" referent="24">
             <Properties>
@@ -2913,7 +2914,7 @@ return UiLibrary
                 <X>0</X>
                 <Y>0</Y>
               </Vector2>
-              <BinaryString name="AttributesSerialize" />
+              <BinaryString name="AttributesSerialize"></BinaryString>
               <bool name="AutoLocalize">true</bool>
               <token name="AutomaticSize">0</token>
               <Color3 name="BackgroundColor3">
@@ -2929,8 +2930,10 @@ return UiLibrary
               </Color3>
               <token name="BorderMode">0</token>
               <int name="BorderSizePixel">0</int>
+              <SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
               <bool name="ClipsDescendants">false</bool>
               <bool name="Draggable">false</bool>
+              <bool name="Interactable">true</bool>
               <int name="LayoutOrder">1</int>
               <Ref name="NextSelectionDown">null</Ref>
               <Ref name="NextSelectionLeft">null</Ref>
@@ -2942,12 +2945,15 @@ return UiLibrary
                 <YS>0</YS>
                 <YO>0</YO>
               </UDim2>
+              <Ref name="RootLocalizationTable">null</Ref>
               <float name="Rotation">0</float>
+              <bool name="DefinesCapabilities">false</bool>
               <bool name="Selectable">false</bool>
               <token name="SelectionBehaviorDown">0</token>
               <token name="SelectionBehaviorLeft">0</token>
               <token name="SelectionBehaviorRight">0</token>
               <token name="SelectionBehaviorUp">0</token>
+              <bool name="SelectionGroup">false</bool>
               <Ref name="SelectionImageObject">null</Ref>
               <int name="SelectionOrder">0</int>
               <UDim2 name="Size">
@@ -2959,7 +2965,7 @@ return UiLibrary
               <token name="SizeConstraint">0</token>
               <int64 name="SourceAssetId">-1</int64>
               <token name="Style">0</token>
-              <BinaryString name="Tags" />
+              <BinaryString name="Tags"></BinaryString>
               <bool name="Visible">true</bool>
               <int name="ZIndex">2</int>
             </Properties>
@@ -2971,7 +2977,7 @@ return UiLibrary
                   <X>0.5</X>
                   <Y>0</Y>
                 </Vector2>
-                <BinaryString name="AttributesSerialize" />
+                <BinaryString name="AttributesSerialize"></BinaryString>
                 <bool name="AutoLocalize">true</bool>
                 <token name="AutomaticCanvasSize">2</token>
                 <token name="AutomaticSize">0</token>
@@ -2988,6 +2994,9 @@ return UiLibrary
                 </Color3>
                 <token name="BorderMode">0</token>
                 <int name="BorderSizePixel">1</int>
+                <Content name="BottomImageContent">
+                  <uri>rbxasset://textures/ui/Scroll/scroll-bottom.png</uri>
+                </Content>
                 <Vector2 name="CanvasPosition">
                   <X>0</X>
                   <Y>0</Y>
@@ -2998,11 +3007,16 @@ return UiLibrary
                   <YS>0</YS>
                   <YO>0</YO>
                 </UDim2>
+                <SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
                 <bool name="ClipsDescendants">true</bool>
                 <bool name="Draggable">false</bool>
                 <token name="ElasticBehavior">0</token>
                 <token name="HorizontalScrollBarInset">0</token>
+                <bool name="Interactable">true</bool>
                 <int name="LayoutOrder">1</int>
+                <Content name="MidImageContent">
+                  <uri>rbxasset://textures/ui/Scroll/scroll-middle.png</uri>
+                </Content>
                 <Ref name="NextSelectionDown">null</Ref>
                 <Ref name="NextSelectionLeft">null</Ref>
                 <Ref name="NextSelectionRight">null</Ref>
@@ -3013,7 +3027,9 @@ return UiLibrary
                   <YS>0</YS>
                   <YO>0</YO>
                 </UDim2>
+                <Ref name="RootLocalizationTable">null</Ref>
                 <float name="Rotation">0</float>
+                <bool name="DefinesCapabilities">false</bool>
                 <Color3 name="ScrollBarImageColor3">
                   <R>1</R>
                   <G>1</G>
@@ -3028,6 +3044,7 @@ return UiLibrary
                 <token name="SelectionBehaviorLeft">0</token>
                 <token name="SelectionBehaviorRight">0</token>
                 <token name="SelectionBehaviorUp">0</token>
+                <bool name="SelectionGroup">true</bool>
                 <Ref name="SelectionImageObject">null</Ref>
                 <int name="SelectionOrder">0</int>
                 <UDim2 name="Size">
@@ -3038,7 +3055,10 @@ return UiLibrary
                 </UDim2>
                 <token name="SizeConstraint">0</token>
                 <int64 name="SourceAssetId">-1</int64>
-                <BinaryString name="Tags" />
+                <BinaryString name="Tags"></BinaryString>
+                <Content name="TopImageContent">
+                  <uri>rbxasset://textures/ui/Scroll/scroll-top.png</uri>
+                </Content>
                 <token name="VerticalScrollBarInset">0</token>
                 <token name="VerticalScrollBarPosition">0</token>
                 <bool name="Visible">true</bool>
@@ -3047,7 +3067,8 @@ return UiLibrary
               <Item class="UIPadding" referent="26">
                 <Properties>
                   <string name="Name">UIPadding</string>
-                  <BinaryString name="AttributesSerialize" />
+                  <BinaryString name="AttributesSerialize"></BinaryString>
+                  <SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
                   <UDim name="PaddingBottom">
                     <S>0</S>
                     <O>2</O>
@@ -3064,24 +3085,30 @@ return UiLibrary
                     <S>0</S>
                     <O>2</O>
                   </UDim>
+                  <bool name="DefinesCapabilities">false</bool>
                   <int64 name="SourceAssetId">-1</int64>
-                  <BinaryString name="Tags" />
+                  <BinaryString name="Tags"></BinaryString>
                 </Properties>
               </Item>
               <Item class="UIListLayout" referent="27">
                 <Properties>
                   <string name="Name">UIListLayout</string>
-                  <BinaryString name="AttributesSerialize" />
+                  <BinaryString name="AttributesSerialize"></BinaryString>
+                  <SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
                   <token name="FillDirection">1</token>
                   <token name="HorizontalAlignment">1</token>
+                  <token name="HorizontalFlex">0</token>
+                  <token name="ItemLineAlignment">0</token>
                   <UDim name="Padding">
                     <S>0</S>
                     <O>3</O>
                   </UDim>
+                  <bool name="DefinesCapabilities">false</bool>
                   <token name="SortOrder">2</token>
                   <int64 name="SourceAssetId">-1</int64>
-                  <BinaryString name="Tags" />
+                  <BinaryString name="Tags"></BinaryString>
                   <token name="VerticalAlignment">1</token>
+                  <token name="VerticalFlex">0</token>
                   <bool name="Wraps">false</bool>
                 </Properties>
               </Item>
@@ -3095,7 +3122,7 @@ return UiLibrary
                 <X>0.5</X>
                 <Y>0.5</Y>
               </Vector2>
-              <BinaryString name="AttributesSerialize" />
+              <BinaryString name="AttributesSerialize"></BinaryString>
               <bool name="AutoLocalize">true</bool>
               <token name="AutomaticSize">0</token>
               <Color3 name="BackgroundColor3">
@@ -3111,8 +3138,10 @@ return UiLibrary
               </Color3>
               <token name="BorderMode">0</token>
               <int name="BorderSizePixel">0</int>
+              <SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
               <bool name="ClipsDescendants">false</bool>
               <bool name="Draggable">false</bool>
+              <bool name="Interactable">true</bool>
               <int name="LayoutOrder">0</int>
               <Ref name="NextSelectionDown">null</Ref>
               <Ref name="NextSelectionLeft">null</Ref>
@@ -3124,12 +3153,15 @@ return UiLibrary
                 <YS>0.5</YS>
                 <YO>0</YO>
               </UDim2>
+              <Ref name="RootLocalizationTable">null</Ref>
               <float name="Rotation">0</float>
+              <bool name="DefinesCapabilities">false</bool>
               <bool name="Selectable">false</bool>
               <token name="SelectionBehaviorDown">0</token>
               <token name="SelectionBehaviorLeft">0</token>
               <token name="SelectionBehaviorRight">0</token>
               <token name="SelectionBehaviorUp">0</token>
+              <bool name="SelectionGroup">false</bool>
               <Ref name="SelectionImageObject">null</Ref>
               <int name="SelectionOrder">0</int>
               <UDim2 name="Size">
@@ -3141,31 +3173,37 @@ return UiLibrary
               <token name="SizeConstraint">0</token>
               <int64 name="SourceAssetId">-1</int64>
               <token name="Style">0</token>
-              <BinaryString name="Tags" />
+              <BinaryString name="Tags"></BinaryString>
               <bool name="Visible">false</bool>
               <int name="ZIndex">3</int>
             </Properties>
             <Item class="UIListLayout" referent="29">
               <Properties>
                 <string name="Name">UIListLayout</string>
-                <BinaryString name="AttributesSerialize" />
+                <BinaryString name="AttributesSerialize"></BinaryString>
+                <SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
                 <token name="FillDirection">1</token>
                 <token name="HorizontalAlignment">1</token>
+                <token name="HorizontalFlex">0</token>
+                <token name="ItemLineAlignment">0</token>
                 <UDim name="Padding">
                   <S>0</S>
                   <O>7</O>
                 </UDim>
+                <bool name="DefinesCapabilities">false</bool>
                 <token name="SortOrder">2</token>
                 <int64 name="SourceAssetId">-1</int64>
-                <BinaryString name="Tags" />
+                <BinaryString name="Tags"></BinaryString>
                 <token name="VerticalAlignment">1</token>
+                <token name="VerticalFlex">0</token>
                 <bool name="Wraps">false</bool>
               </Properties>
             </Item>
             <Item class="UIPadding" referent="30">
               <Properties>
                 <string name="Name">UIPadding</string>
-                <BinaryString name="AttributesSerialize" />
+                <BinaryString name="AttributesSerialize"></BinaryString>
+                <SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
                 <UDim name="PaddingBottom">
                   <S>0</S>
                   <O>3</O>
@@ -3182,8 +3220,9 @@ return UiLibrary
                   <S>0</S>
                   <O>3</O>
                 </UDim>
+                <bool name="DefinesCapabilities">false</bool>
                 <int64 name="SourceAssetId">-1</int64>
-                <BinaryString name="Tags" />
+                <BinaryString name="Tags"></BinaryString>
               </Properties>
             </Item>
           </Item>
@@ -3195,7 +3234,7 @@ return UiLibrary
                 <X>0.5</X>
                 <Y>0</Y>
               </Vector2>
-              <BinaryString name="AttributesSerialize" />
+              <BinaryString name="AttributesSerialize"></BinaryString>
               <bool name="AutoButtonColor">false</bool>
               <bool name="AutoLocalize">true</bool>
               <token name="AutomaticSize">0</token>
@@ -3212,32 +3251,47 @@ return UiLibrary
               </Color3>
               <token name="BorderMode">0</token>
               <int name="BorderSizePixel">1</int>
+              <SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
               <bool name="ClipsDescendants">false</bool>
               <bool name="Draggable">false</bool>
+              <Font name="FontFace">
+                <Family>
+                  <url>rbxasset://fonts/families/SourceSansPro.json</url>
+                </Family>
+                <Weight>300</Weight>
+                <Style>Normal</Style>
+              </Font>
+              <Ref name="HoverHapticEffect">null</Ref>
+              <bool name="Interactable">true</bool>
               <int name="LayoutOrder">1</int>
               <float name="LineHeight">1</float>
-              <string name="LocalizationMatchIdentifier" />
-              <string name="LocalizationMatchedSourceText" />
+              <string name="LocalizationMatchIdentifier"></string>
+              <string name="LocalizationMatchedSourceText"></string>
               <int name="MaxVisibleGraphemes">-1</int>
               <bool name="Modal">false</bool>
               <Ref name="NextSelectionDown">null</Ref>
               <Ref name="NextSelectionLeft">null</Ref>
               <Ref name="NextSelectionRight">null</Ref>
               <Ref name="NextSelectionUp">null</Ref>
+              <string name="OpenTypeFeatures"></string>
               <UDim2 name="Position">
                 <XS>0.5</XS>
                 <XO>0</XO>
                 <YS>0</YS>
                 <YO>4</YO>
               </UDim2>
+              <Ref name="PressHapticEffect">null</Ref>
               <bool name="RichText">false</bool>
+              <Ref name="RootLocalizationTable">null</Ref>
               <float name="Rotation">0</float>
+              <bool name="DefinesCapabilities">false</bool>
               <bool name="Selectable">false</bool>
               <bool name="Selected">false</bool>
               <token name="SelectionBehaviorDown">0</token>
               <token name="SelectionBehaviorLeft">0</token>
               <token name="SelectionBehaviorRight">0</token>
               <token name="SelectionBehaviorUp">0</token>
+              <bool name="SelectionGroup">false</bool>
               <Ref name="SelectionImageObject">null</Ref>
               <int name="SelectionOrder">0</int>
               <UDim2 name="Size">
@@ -3249,7 +3303,7 @@ return UiLibrary
               <token name="SizeConstraint">0</token>
               <int64 name="SourceAssetId">-1</int64>
               <token name="Style">0</token>
-              <BinaryString name="Tags" />
+              <BinaryString name="Tags"></BinaryString>
               <string name="Text">Reupload</string>
               <Color3 name="TextColor3">
                 <R>1</R>
@@ -3282,7 +3336,7 @@ return UiLibrary
                 <X>0</X>
                 <Y>0</Y>
               </Vector2>
-              <BinaryString name="AttributesSerialize" />
+              <BinaryString name="AttributesSerialize"></BinaryString>
               <bool name="AutoLocalize">true</bool>
               <token name="AutomaticSize">0</token>
               <Color3 name="BackgroundColor3">
@@ -3298,8 +3352,10 @@ return UiLibrary
               </Color3>
               <token name="BorderMode">0</token>
               <int name="BorderSizePixel">1</int>
+              <SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
               <bool name="ClipsDescendants">false</bool>
               <bool name="Draggable">false</bool>
+              <bool name="Interactable">true</bool>
               <int name="LayoutOrder">1</int>
               <Ref name="NextSelectionDown">null</Ref>
               <Ref name="NextSelectionLeft">null</Ref>
@@ -3311,12 +3367,15 @@ return UiLibrary
                 <YS>0</YS>
                 <YO>0</YO>
               </UDim2>
+              <Ref name="RootLocalizationTable">null</Ref>
               <float name="Rotation">0</float>
+              <bool name="DefinesCapabilities">false</bool>
               <bool name="Selectable">false</bool>
               <token name="SelectionBehaviorDown">0</token>
               <token name="SelectionBehaviorLeft">0</token>
               <token name="SelectionBehaviorRight">0</token>
               <token name="SelectionBehaviorUp">0</token>
+              <bool name="SelectionGroup">false</bool>
               <Ref name="SelectionImageObject">null</Ref>
               <int name="SelectionOrder">0</int>
               <UDim2 name="Size">
@@ -3328,7 +3387,7 @@ return UiLibrary
               <token name="SizeConstraint">0</token>
               <int64 name="SourceAssetId">-1</int64>
               <token name="Style">0</token>
-              <BinaryString name="Tags" />
+              <BinaryString name="Tags"></BinaryString>
               <bool name="Visible">true</bool>
               <int name="ZIndex">2</int>
             </Properties>
@@ -3340,7 +3399,7 @@ return UiLibrary
                   <X>0</X>
                   <Y>0.5</Y>
                 </Vector2>
-                <BinaryString name="AttributesSerialize" />
+                <BinaryString name="AttributesSerialize"></BinaryString>
                 <bool name="AutoButtonColor">false</bool>
                 <bool name="AutoLocalize">true</bool>
                 <token name="AutomaticSize">0</token>
@@ -3357,13 +3416,23 @@ return UiLibrary
                 </Color3>
                 <token name="BorderMode">0</token>
                 <int name="BorderSizePixel">1</int>
+                <SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
                 <bool name="ClipsDescendants">false</bool>
                 <bool name="Draggable">false</bool>
+                <Ref name="HoverHapticEffect">null</Ref>
+                <Content name="HoverImageContent">
+                  <null>
+                  </null>
+                </Content>
                 <Color3 name="ImageColor3">
                   <R>1</R>
                   <G>1</G>
                   <B>1</B>
                 </Color3>
+                <Content name="ImageContent">
+                  <null>
+                  </null>
+                </Content>
                 <Vector2 name="ImageRectOffset">
                   <X>0</X>
                   <Y>0</Y>
@@ -3373,6 +3442,7 @@ return UiLibrary
                   <Y>0</Y>
                 </Vector2>
                 <float name="ImageTransparency">0</float>
+                <bool name="Interactable">true</bool>
                 <int name="LayoutOrder">0</int>
                 <bool name="Modal">false</bool>
                 <Ref name="NextSelectionDown">null</Ref>
@@ -3385,7 +3455,15 @@ return UiLibrary
                   <YS>0.5</YS>
                   <YO>0</YO>
                 </UDim2>
+                <Ref name="PressHapticEffect">null</Ref>
+                <Content name="PressedImageContent">
+                  <null>
+                  </null>
+                </Content>
+                <token name="ResampleMode">1</token>
+                <Ref name="RootLocalizationTable">null</Ref>
                 <float name="Rotation">0</float>
+                <bool name="DefinesCapabilities">false</bool>
                 <token name="ScaleType">0</token>
                 <bool name="Selectable">false</bool>
                 <bool name="Selected">false</bool>
@@ -3393,6 +3471,7 @@ return UiLibrary
                 <token name="SelectionBehaviorLeft">0</token>
                 <token name="SelectionBehaviorRight">0</token>
                 <token name="SelectionBehaviorUp">0</token>
+                <bool name="SelectionGroup">false</bool>
                 <Ref name="SelectionImageObject">null</Ref>
                 <int name="SelectionOrder">0</int>
                 <UDim2 name="Size">
@@ -3415,7 +3494,7 @@ return UiLibrary
                 <float name="SliceScale">1</float>
                 <int64 name="SourceAssetId">-1</int64>
                 <token name="Style">0</token>
-                <BinaryString name="Tags" />
+                <BinaryString name="Tags"></BinaryString>
                 <UDim2 name="TileSize">
                   <XS>1</XS>
                   <XO>0</XO>
@@ -3434,7 +3513,7 @@ return UiLibrary
                   <X>0</X>
                   <Y>0.5</Y>
                 </Vector2>
-                <BinaryString name="AttributesSerialize" />
+                <BinaryString name="AttributesSerialize"></BinaryString>
                 <bool name="AutoLocalize">true</bool>
                 <token name="AutomaticSize">0</token>
                 <Color3 name="BackgroundColor3">
@@ -3450,17 +3529,27 @@ return UiLibrary
                 </Color3>
                 <token name="BorderMode">0</token>
                 <int name="BorderSizePixel">1</int>
+                <SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
                 <bool name="ClipsDescendants">false</bool>
                 <bool name="Draggable">false</bool>
+                <Font name="FontFace">
+                  <Family>
+                    <url>rbxasset://fonts/families/SourceSansPro.json</url>
+                  </Family>
+                  <Weight>300</Weight>
+                  <Style>Normal</Style>
+                </Font>
+                <bool name="Interactable">true</bool>
                 <int name="LayoutOrder">1</int>
                 <float name="LineHeight">1</float>
-                <string name="LocalizationMatchIdentifier" />
-                <string name="LocalizationMatchedSourceText" />
+                <string name="LocalizationMatchIdentifier"></string>
+                <string name="LocalizationMatchedSourceText"></string>
                 <int name="MaxVisibleGraphemes">-1</int>
                 <Ref name="NextSelectionDown">null</Ref>
                 <Ref name="NextSelectionLeft">null</Ref>
                 <Ref name="NextSelectionRight">null</Ref>
                 <Ref name="NextSelectionUp">null</Ref>
+                <string name="OpenTypeFeatures"></string>
                 <UDim2 name="Position">
                   <XS>0</XS>
                   <XO>22</XO>
@@ -3468,12 +3557,15 @@ return UiLibrary
                   <YO>0</YO>
                 </UDim2>
                 <bool name="RichText">false</bool>
+                <Ref name="RootLocalizationTable">null</Ref>
                 <float name="Rotation">0</float>
+                <bool name="DefinesCapabilities">false</bool>
                 <bool name="Selectable">false</bool>
                 <token name="SelectionBehaviorDown">0</token>
                 <token name="SelectionBehaviorLeft">0</token>
                 <token name="SelectionBehaviorRight">0</token>
                 <token name="SelectionBehaviorUp">0</token>
+                <bool name="SelectionGroup">false</bool>
                 <Ref name="SelectionImageObject">null</Ref>
                 <int name="SelectionOrder">0</int>
                 <UDim2 name="Size">
@@ -3484,7 +3576,7 @@ return UiLibrary
                 </UDim2>
                 <token name="SizeConstraint">0</token>
                 <int64 name="SourceAssetId">-1</int64>
-                <BinaryString name="Tags" />
+                <BinaryString name="Tags"></BinaryString>
                 <string name="Text">Toggle</string>
                 <Color3 name="TextColor3">
                   <R>1</R>
@@ -3518,7 +3610,7 @@ return UiLibrary
                 <X>0.5</X>
                 <Y>0.5</Y>
               </Vector2>
-              <BinaryString name="AttributesSerialize" />
+              <BinaryString name="AttributesSerialize"></BinaryString>
               <bool name="AutoButtonColor">false</bool>
               <bool name="AutoLocalize">true</bool>
               <token name="AutomaticSize">0</token>
@@ -3535,13 +3627,23 @@ return UiLibrary
               </Color3>
               <token name="BorderMode">0</token>
               <int name="BorderSizePixel">1</int>
+              <SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
               <bool name="ClipsDescendants">false</bool>
               <bool name="Draggable">false</bool>
+              <Ref name="HoverHapticEffect">null</Ref>
+              <Content name="HoverImageContent">
+                <null>
+                </null>
+              </Content>
               <Color3 name="ImageColor3">
                 <R>1</R>
                 <G>1</G>
                 <B>1</B>
               </Color3>
+              <Content name="ImageContent">
+                <null>
+                </null>
+              </Content>
               <Vector2 name="ImageRectOffset">
                 <X>0</X>
                 <Y>0</Y>
@@ -3551,6 +3653,7 @@ return UiLibrary
                 <Y>0</Y>
               </Vector2>
               <float name="ImageTransparency">0</float>
+              <bool name="Interactable">true</bool>
               <int name="LayoutOrder">1</int>
               <bool name="Modal">false</bool>
               <Ref name="NextSelectionDown">null</Ref>
@@ -3563,7 +3666,15 @@ return UiLibrary
                 <YS>0</YS>
                 <YO>78</YO>
               </UDim2>
+              <Ref name="PressHapticEffect">null</Ref>
+              <Content name="PressedImageContent">
+                <null>
+                </null>
+              </Content>
+              <token name="ResampleMode">0</token>
+              <Ref name="RootLocalizationTable">null</Ref>
               <float name="Rotation">0</float>
+              <bool name="DefinesCapabilities">false</bool>
               <token name="ScaleType">0</token>
               <bool name="Selectable">false</bool>
               <bool name="Selected">false</bool>
@@ -3571,6 +3682,7 @@ return UiLibrary
               <token name="SelectionBehaviorLeft">0</token>
               <token name="SelectionBehaviorRight">0</token>
               <token name="SelectionBehaviorUp">0</token>
+              <bool name="SelectionGroup">false</bool>
               <Ref name="SelectionImageObject">null</Ref>
               <int name="SelectionOrder">0</int>
               <UDim2 name="Size">
@@ -3593,7 +3705,7 @@ return UiLibrary
               <float name="SliceScale">1</float>
               <int64 name="SourceAssetId">-1</int64>
               <token name="Style">0</token>
-              <BinaryString name="Tags" />
+              <BinaryString name="Tags"></BinaryString>
               <UDim2 name="TileSize">
                 <XS>1</XS>
                 <XO>0</XO>
@@ -3611,7 +3723,7 @@ return UiLibrary
                   <X>0</X>
                   <Y>0.5</Y>
                 </Vector2>
-                <BinaryString name="AttributesSerialize" />
+                <BinaryString name="AttributesSerialize"></BinaryString>
                 <bool name="AutoLocalize">true</bool>
                 <token name="AutomaticSize">0</token>
                 <Color3 name="BackgroundColor3">
@@ -3627,17 +3739,27 @@ return UiLibrary
                 </Color3>
                 <token name="BorderMode">0</token>
                 <int name="BorderSizePixel">1</int>
+                <SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
                 <bool name="ClipsDescendants">false</bool>
                 <bool name="Draggable">false</bool>
+                <Font name="FontFace">
+                  <Family>
+                    <url>rbxasset://fonts/families/SourceSansPro.json</url>
+                  </Family>
+                  <Weight>300</Weight>
+                  <Style>Normal</Style>
+                </Font>
+                <bool name="Interactable">true</bool>
                 <int name="LayoutOrder">1</int>
                 <float name="LineHeight">1</float>
-                <string name="LocalizationMatchIdentifier" />
-                <string name="LocalizationMatchedSourceText" />
+                <string name="LocalizationMatchIdentifier"></string>
+                <string name="LocalizationMatchedSourceText"></string>
                 <int name="MaxVisibleGraphemes">-1</int>
                 <Ref name="NextSelectionDown">null</Ref>
                 <Ref name="NextSelectionLeft">null</Ref>
                 <Ref name="NextSelectionRight">null</Ref>
                 <Ref name="NextSelectionUp">null</Ref>
+                <string name="OpenTypeFeatures"></string>
                 <UDim2 name="Position">
                   <XS>0</XS>
                   <XO>5</XO>
@@ -3645,12 +3767,15 @@ return UiLibrary
                   <YO>0</YO>
                 </UDim2>
                 <bool name="RichText">false</bool>
+                <Ref name="RootLocalizationTable">null</Ref>
                 <float name="Rotation">0</float>
+                <bool name="DefinesCapabilities">false</bool>
                 <bool name="Selectable">false</bool>
                 <token name="SelectionBehaviorDown">0</token>
                 <token name="SelectionBehaviorLeft">0</token>
                 <token name="SelectionBehaviorRight">0</token>
                 <token name="SelectionBehaviorUp">0</token>
+                <bool name="SelectionGroup">false</bool>
                 <Ref name="SelectionImageObject">null</Ref>
                 <int name="SelectionOrder">0</int>
                 <UDim2 name="Size">
@@ -3661,7 +3786,7 @@ return UiLibrary
                 </UDim2>
                 <token name="SizeConstraint">0</token>
                 <int64 name="SourceAssetId">-1</int64>
-                <BinaryString name="Tags" />
+                <BinaryString name="Tags"></BinaryString>
                 <string name="Text">Light</string>
                 <Color3 name="TextColor3">
                   <R>1</R>
@@ -3695,7 +3820,7 @@ return UiLibrary
                 <X>0</X>
                 <Y>0</Y>
               </Vector2>
-              <BinaryString name="AttributesSerialize" />
+              <BinaryString name="AttributesSerialize"></BinaryString>
               <bool name="AutoLocalize">true</bool>
               <token name="AutomaticSize">0</token>
               <Color3 name="BackgroundColor3">
@@ -3711,6 +3836,7 @@ return UiLibrary
               </Color3>
               <token name="BorderMode">0</token>
               <int name="BorderSizePixel">0</int>
+              <SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
               <bool name="ClipsDescendants">false</bool>
               <bool name="Draggable">false</bool>
               <Color3 name="ImageColor3">
@@ -3718,6 +3844,10 @@ return UiLibrary
                 <G>1</G>
                 <B>1</B>
               </Color3>
+              <Content name="ImageContent">
+                <null>
+                </null>
+              </Content>
               <Vector2 name="ImageRectOffset">
                 <X>0</X>
                 <Y>0</Y>
@@ -3727,6 +3857,7 @@ return UiLibrary
                 <Y>0</Y>
               </Vector2>
               <float name="ImageTransparency">0</float>
+              <bool name="Interactable">true</bool>
               <int name="LayoutOrder">0</int>
               <Ref name="NextSelectionDown">null</Ref>
               <Ref name="NextSelectionLeft">null</Ref>
@@ -3738,13 +3869,17 @@ return UiLibrary
                 <YS>0</YS>
                 <YO>0</YO>
               </UDim2>
+              <token name="ResampleMode">0</token>
+              <Ref name="RootLocalizationTable">null</Ref>
               <float name="Rotation">0</float>
+              <bool name="DefinesCapabilities">false</bool>
               <token name="ScaleType">0</token>
               <bool name="Selectable">false</bool>
               <token name="SelectionBehaviorDown">0</token>
               <token name="SelectionBehaviorLeft">0</token>
               <token name="SelectionBehaviorRight">0</token>
               <token name="SelectionBehaviorUp">0</token>
+              <bool name="SelectionGroup">false</bool>
               <Ref name="SelectionImageObject">null</Ref>
               <int name="SelectionOrder">0</int>
               <UDim2 name="Size">
@@ -3766,7 +3901,7 @@ return UiLibrary
               </Rect2D>
               <float name="SliceScale">1</float>
               <int64 name="SourceAssetId">-1</int64>
-              <BinaryString name="Tags" />
+              <BinaryString name="Tags"></BinaryString>
               <UDim2 name="TileSize">
                 <XS>1</XS>
                 <XO>0</XO>
@@ -3784,7 +3919,7 @@ return UiLibrary
                   <X>0.5</X>
                   <Y>0</Y>
                 </Vector2>
-                <BinaryString name="AttributesSerialize" />
+                <BinaryString name="AttributesSerialize"></BinaryString>
                 <bool name="AutoLocalize">true</bool>
                 <token name="AutomaticSize">0</token>
                 <Color3 name="BackgroundColor3">
@@ -3800,8 +3935,10 @@ return UiLibrary
                 </Color3>
                 <token name="BorderMode">0</token>
                 <int name="BorderSizePixel">0</int>
+                <SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
                 <bool name="ClipsDescendants">false</bool>
                 <bool name="Draggable">false</bool>
+                <bool name="Interactable">true</bool>
                 <int name="LayoutOrder">0</int>
                 <Ref name="NextSelectionDown">null</Ref>
                 <Ref name="NextSelectionLeft">null</Ref>
@@ -3813,12 +3950,15 @@ return UiLibrary
                   <YS>0</YS>
                   <YO>35</YO>
                 </UDim2>
+                <Ref name="RootLocalizationTable">null</Ref>
                 <float name="Rotation">0</float>
+                <bool name="DefinesCapabilities">false</bool>
                 <bool name="Selectable">false</bool>
                 <token name="SelectionBehaviorDown">0</token>
                 <token name="SelectionBehaviorLeft">0</token>
                 <token name="SelectionBehaviorRight">0</token>
                 <token name="SelectionBehaviorUp">0</token>
+                <bool name="SelectionGroup">false</bool>
                 <Ref name="SelectionImageObject">null</Ref>
                 <int name="SelectionOrder">0</int>
                 <UDim2 name="Size">
@@ -3830,14 +3970,14 @@ return UiLibrary
                 <token name="SizeConstraint">0</token>
                 <int64 name="SourceAssetId">-1</int64>
                 <token name="Style">0</token>
-                <BinaryString name="Tags" />
+                <BinaryString name="Tags"></BinaryString>
                 <bool name="Visible">true</bool>
                 <int name="ZIndex">2</int>
               </Properties>
               <Item class="UICorner" referent="39">
                 <Properties>
                   <string name="Name">UICorner</string>
-                  <BinaryString name="AttributesSerialize" />
+                  <BinaryString name="AttributesSerialize"></BinaryString>
                   <UDim name="BottomLeftRadius">
                     <S>0</S>
                     <O>8</O>
@@ -3846,8 +3986,10 @@ return UiLibrary
                     <S>0</S>
                     <O>8</O>
                   </UDim>
+                  <SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
+                  <bool name="DefinesCapabilities">false</bool>
                   <int64 name="SourceAssetId">-1</int64>
-                  <BinaryString name="Tags" />
+                  <BinaryString name="Tags"></BinaryString>
                   <UDim name="TopLeftRadius">
                     <S>0</S>
                     <O>8</O>
@@ -3866,7 +4008,7 @@ return UiLibrary
                     <X>0.5</X>
                     <Y>0.5</Y>
                   </Vector2>
-                  <BinaryString name="AttributesSerialize" />
+                  <BinaryString name="AttributesSerialize"></BinaryString>
                   <bool name="AutoLocalize">true</bool>
                   <token name="AutomaticSize">0</token>
                   <Color3 name="BackgroundColor3">
@@ -3882,6 +4024,7 @@ return UiLibrary
                   </Color3>
                   <token name="BorderMode">0</token>
                   <int name="BorderSizePixel">0</int>
+                  <SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
                   <bool name="ClipsDescendants">false</bool>
                   <bool name="Draggable">false</bool>
                   <Color3 name="ImageColor3">
@@ -3889,6 +4032,10 @@ return UiLibrary
                     <G>1</G>
                     <B>1</B>
                   </Color3>
+                  <Content name="ImageContent">
+                    <null>
+                    </null>
+                  </Content>
                   <Vector2 name="ImageRectOffset">
                     <X>0</X>
                     <Y>0</Y>
@@ -3898,6 +4045,7 @@ return UiLibrary
                     <Y>0</Y>
                   </Vector2>
                   <float name="ImageTransparency">0</float>
+                  <bool name="Interactable">true</bool>
                   <int name="LayoutOrder">0</int>
                   <Ref name="NextSelectionDown">null</Ref>
                   <Ref name="NextSelectionLeft">null</Ref>
@@ -3909,13 +4057,17 @@ return UiLibrary
                     <YS>0.5</YS>
                     <YO>0</YO>
                   </UDim2>
+                  <token name="ResampleMode">0</token>
+                  <Ref name="RootLocalizationTable">null</Ref>
                   <float name="Rotation">0</float>
+                  <bool name="DefinesCapabilities">false</bool>
                   <token name="ScaleType">0</token>
                   <bool name="Selectable">false</bool>
                   <token name="SelectionBehaviorDown">0</token>
                   <token name="SelectionBehaviorLeft">0</token>
                   <token name="SelectionBehaviorRight">0</token>
                   <token name="SelectionBehaviorUp">0</token>
+                  <bool name="SelectionGroup">false</bool>
                   <Ref name="SelectionImageObject">null</Ref>
                   <int name="SelectionOrder">0</int>
                   <UDim2 name="Size">
@@ -3937,7 +4089,7 @@ return UiLibrary
                   </Rect2D>
                   <float name="SliceScale">1</float>
                   <int64 name="SourceAssetId">-1</int64>
-                  <BinaryString name="Tags" />
+                  <BinaryString name="Tags"></BinaryString>
                   <UDim2 name="TileSize">
                     <XS>1</XS>
                     <XO>0</XO>
@@ -3950,7 +4102,7 @@ return UiLibrary
                 <Item class="UICorner" referent="41">
                   <Properties>
                     <string name="Name">UICorner</string>
-                    <BinaryString name="AttributesSerialize" />
+                    <BinaryString name="AttributesSerialize"></BinaryString>
                     <UDim name="BottomLeftRadius">
                       <S>0</S>
                       <O>8</O>
@@ -3959,8 +4111,10 @@ return UiLibrary
                       <S>0</S>
                       <O>8</O>
                     </UDim>
+                    <SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
+                    <bool name="DefinesCapabilities">false</bool>
                     <int64 name="SourceAssetId">-1</int64>
-                    <BinaryString name="Tags" />
+                    <BinaryString name="Tags"></BinaryString>
                     <UDim name="TopLeftRadius">
                       <S>0</S>
                       <O>8</O>
@@ -3975,9 +4129,11 @@ return UiLibrary
               <Item class="Folder" referent="42">
                 <Properties>
                   <string name="Name">Tabs</string>
-                  <BinaryString name="AttributesSerialize" />
+                  <BinaryString name="AttributesSerialize"></BinaryString>
+                  <SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
+                  <bool name="DefinesCapabilities">false</bool>
                   <int64 name="SourceAssetId">-1</int64>
-                  <BinaryString name="Tags" />
+                  <BinaryString name="Tags"></BinaryString>
                 </Properties>
               </Item>
             </Item>
@@ -3989,7 +4145,7 @@ return UiLibrary
                   <X>0.5</X>
                   <Y>1</Y>
                 </Vector2>
-                <BinaryString name="AttributesSerialize" />
+                <BinaryString name="AttributesSerialize"></BinaryString>
                 <bool name="AutoLocalize">true</bool>
                 <token name="AutomaticSize">0</token>
                 <Color3 name="BackgroundColor3">
@@ -4005,8 +4161,10 @@ return UiLibrary
                 </Color3>
                 <token name="BorderMode">0</token>
                 <int name="BorderSizePixel">0</int>
+                <SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
                 <bool name="ClipsDescendants">false</bool>
                 <bool name="Draggable">false</bool>
+                <bool name="Interactable">true</bool>
                 <int name="LayoutOrder">0</int>
                 <Ref name="NextSelectionDown">null</Ref>
                 <Ref name="NextSelectionLeft">null</Ref>
@@ -4018,12 +4176,15 @@ return UiLibrary
                   <YS>1</YS>
                   <YO>-11</YO>
                 </UDim2>
+                <Ref name="RootLocalizationTable">null</Ref>
                 <float name="Rotation">0</float>
+                <bool name="DefinesCapabilities">false</bool>
                 <bool name="Selectable">false</bool>
                 <token name="SelectionBehaviorDown">0</token>
                 <token name="SelectionBehaviorLeft">0</token>
                 <token name="SelectionBehaviorRight">0</token>
                 <token name="SelectionBehaviorUp">0</token>
+                <bool name="SelectionGroup">false</bool>
                 <Ref name="SelectionImageObject">null</Ref>
                 <int name="SelectionOrder">0</int>
                 <UDim2 name="Size">
@@ -4035,7 +4196,7 @@ return UiLibrary
                 <token name="SizeConstraint">0</token>
                 <int64 name="SourceAssetId">-1</int64>
                 <token name="Style">0</token>
-                <BinaryString name="Tags" />
+                <BinaryString name="Tags"></BinaryString>
                 <bool name="Visible">false</bool>
                 <int name="ZIndex">3</int>
               </Properties>
@@ -4047,7 +4208,7 @@ return UiLibrary
                     <X>0.5</X>
                     <Y>0.5</Y>
                   </Vector2>
-                  <BinaryString name="AttributesSerialize" />
+                  <BinaryString name="AttributesSerialize"></BinaryString>
                   <bool name="AutoLocalize">true</bool>
                   <token name="AutomaticSize">0</token>
                   <Color3 name="BackgroundColor3">
@@ -4063,6 +4224,7 @@ return UiLibrary
                   </Color3>
                   <token name="BorderMode">0</token>
                   <int name="BorderSizePixel">0</int>
+                  <SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
                   <bool name="ClipsDescendants">false</bool>
                   <bool name="Draggable">false</bool>
                   <Color3 name="ImageColor3">
@@ -4070,6 +4232,10 @@ return UiLibrary
                     <G>1</G>
                     <B>1</B>
                   </Color3>
+                  <Content name="ImageContent">
+                    <null>
+                    </null>
+                  </Content>
                   <Vector2 name="ImageRectOffset">
                     <X>0</X>
                     <Y>0</Y>
@@ -4079,6 +4245,7 @@ return UiLibrary
                     <Y>0</Y>
                   </Vector2>
                   <float name="ImageTransparency">0</float>
+                  <bool name="Interactable">true</bool>
                   <int name="LayoutOrder">0</int>
                   <Ref name="NextSelectionDown">null</Ref>
                   <Ref name="NextSelectionLeft">null</Ref>
@@ -4090,13 +4257,17 @@ return UiLibrary
                     <YS>0.5</YS>
                     <YO>0</YO>
                   </UDim2>
+                  <token name="ResampleMode">0</token>
+                  <Ref name="RootLocalizationTable">null</Ref>
                   <float name="Rotation">0</float>
+                  <bool name="DefinesCapabilities">false</bool>
                   <token name="ScaleType">0</token>
                   <bool name="Selectable">false</bool>
                   <token name="SelectionBehaviorDown">0</token>
                   <token name="SelectionBehaviorLeft">0</token>
                   <token name="SelectionBehaviorRight">0</token>
                   <token name="SelectionBehaviorUp">0</token>
+                  <bool name="SelectionGroup">false</bool>
                   <Ref name="SelectionImageObject">null</Ref>
                   <int name="SelectionOrder">0</int>
                   <UDim2 name="Size">
@@ -4118,7 +4289,7 @@ return UiLibrary
                   </Rect2D>
                   <float name="SliceScale">1</float>
                   <int64 name="SourceAssetId">-1</int64>
-                  <BinaryString name="Tags" />
+                  <BinaryString name="Tags"></BinaryString>
                   <UDim2 name="TileSize">
                     <XS>1</XS>
                     <XO>0</XO>
@@ -4136,7 +4307,7 @@ return UiLibrary
                       <X>0.5</X>
                       <Y>0.5</Y>
                     </Vector2>
-                    <BinaryString name="AttributesSerialize" />
+                    <BinaryString name="AttributesSerialize"></BinaryString>
                     <bool name="AutoLocalize">true</bool>
                     <token name="AutomaticSize">0</token>
                     <Color3 name="BackgroundColor3">
@@ -4152,17 +4323,27 @@ return UiLibrary
                     </Color3>
                     <token name="BorderMode">0</token>
                     <int name="BorderSizePixel">0</int>
+                    <SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
                     <bool name="ClipsDescendants">false</bool>
                     <bool name="Draggable">false</bool>
+                    <Font name="FontFace">
+                      <Family>
+                        <url>rbxasset://fonts/families/SourceSansPro.json</url>
+                      </Family>
+                      <Weight>300</Weight>
+                      <Style>Normal</Style>
+                    </Font>
+                    <bool name="Interactable">true</bool>
                     <int name="LayoutOrder">0</int>
                     <float name="LineHeight">1</float>
-                    <string name="LocalizationMatchIdentifier" />
-                    <string name="LocalizationMatchedSourceText" />
+                    <string name="LocalizationMatchIdentifier"></string>
+                    <string name="LocalizationMatchedSourceText"></string>
                     <int name="MaxVisibleGraphemes">-1</int>
                     <Ref name="NextSelectionDown">null</Ref>
                     <Ref name="NextSelectionLeft">null</Ref>
                     <Ref name="NextSelectionRight">null</Ref>
                     <Ref name="NextSelectionUp">null</Ref>
+                    <string name="OpenTypeFeatures"></string>
                     <UDim2 name="Position">
                       <XS>0.5</XS>
                       <XO>0</XO>
@@ -4170,12 +4351,15 @@ return UiLibrary
                       <YO>0</YO>
                     </UDim2>
                     <bool name="RichText">false</bool>
+                    <Ref name="RootLocalizationTable">null</Ref>
                     <float name="Rotation">0</float>
+                    <bool name="DefinesCapabilities">false</bool>
                     <bool name="Selectable">false</bool>
                     <token name="SelectionBehaviorDown">0</token>
                     <token name="SelectionBehaviorLeft">0</token>
                     <token name="SelectionBehaviorRight">0</token>
                     <token name="SelectionBehaviorUp">0</token>
+                    <bool name="SelectionGroup">false</bool>
                     <Ref name="SelectionImageObject">null</Ref>
                     <int name="SelectionOrder">0</int>
                     <UDim2 name="Size">
@@ -4186,7 +4370,7 @@ return UiLibrary
                     </UDim2>
                     <token name="SizeConstraint">0</token>
                     <int64 name="SourceAssetId">-1</int64>
-                    <BinaryString name="Tags" />
+                    <BinaryString name="Tags"></BinaryString>
                     <string name="Text">Tip</string>
                     <Color3 name="TextColor3">
                       <R>1</R>
@@ -4214,7 +4398,7 @@ return UiLibrary
                 <Item class="UICorner" referent="46">
                   <Properties>
                     <string name="Name">UICorner</string>
-                    <BinaryString name="AttributesSerialize" />
+                    <BinaryString name="AttributesSerialize"></BinaryString>
                     <UDim name="BottomLeftRadius">
                       <S>0</S>
                       <O>8</O>
@@ -4223,8 +4407,10 @@ return UiLibrary
                       <S>0</S>
                       <O>8</O>
                     </UDim>
+                    <SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
+                    <bool name="DefinesCapabilities">false</bool>
                     <int64 name="SourceAssetId">-1</int64>
-                    <BinaryString name="Tags" />
+                    <BinaryString name="Tags"></BinaryString>
                     <UDim name="TopLeftRadius">
                       <S>0</S>
                       <O>8</O>
@@ -4239,7 +4425,7 @@ return UiLibrary
               <Item class="UICorner" referent="47">
                 <Properties>
                   <string name="Name">UICorner</string>
-                  <BinaryString name="AttributesSerialize" />
+                  <BinaryString name="AttributesSerialize"></BinaryString>
                   <UDim name="BottomLeftRadius">
                     <S>0</S>
                     <O>8</O>
@@ -4248,8 +4434,10 @@ return UiLibrary
                     <S>0</S>
                     <O>8</O>
                   </UDim>
+                  <SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
+                  <bool name="DefinesCapabilities">false</bool>
                   <int64 name="SourceAssetId">-1</int64>
-                  <BinaryString name="Tags" />
+                  <BinaryString name="Tags"></BinaryString>
                   <UDim name="TopLeftRadius">
                     <S>0</S>
                     <O>8</O>
@@ -4269,7 +4457,7 @@ return UiLibrary
                   <X>0.5</X>
                   <Y>0</Y>
                 </Vector2>
-                <BinaryString name="AttributesSerialize" />
+                <BinaryString name="AttributesSerialize"></BinaryString>
                 <bool name="AutoLocalize">true</bool>
                 <token name="AutomaticSize">0</token>
                 <Color3 name="BackgroundColor3">
@@ -4285,8 +4473,10 @@ return UiLibrary
                 </Color3>
                 <token name="BorderMode">0</token>
                 <int name="BorderSizePixel">0</int>
+                <SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
                 <bool name="ClipsDescendants">false</bool>
                 <bool name="Draggable">false</bool>
+                <bool name="Interactable">true</bool>
                 <int name="LayoutOrder">0</int>
                 <Ref name="NextSelectionDown">null</Ref>
                 <Ref name="NextSelectionLeft">null</Ref>
@@ -4298,12 +4488,15 @@ return UiLibrary
                   <YS>0</YS>
                   <YO>5</YO>
                 </UDim2>
+                <Ref name="RootLocalizationTable">null</Ref>
                 <float name="Rotation">0</float>
+                <bool name="DefinesCapabilities">false</bool>
                 <bool name="Selectable">false</bool>
                 <token name="SelectionBehaviorDown">0</token>
                 <token name="SelectionBehaviorLeft">0</token>
                 <token name="SelectionBehaviorRight">0</token>
                 <token name="SelectionBehaviorUp">0</token>
+                <bool name="SelectionGroup">false</bool>
                 <Ref name="SelectionImageObject">null</Ref>
                 <int name="SelectionOrder">0</int>
                 <UDim2 name="Size">
@@ -4315,7 +4508,7 @@ return UiLibrary
                 <token name="SizeConstraint">0</token>
                 <int64 name="SourceAssetId">-1</int64>
                 <token name="Style">0</token>
-                <BinaryString name="Tags" />
+                <BinaryString name="Tags"></BinaryString>
                 <bool name="Visible">true</bool>
                 <int name="ZIndex">2</int>
               </Properties>
@@ -4327,7 +4520,7 @@ return UiLibrary
                     <X>0.5</X>
                     <Y>0.5</Y>
                   </Vector2>
-                  <BinaryString name="AttributesSerialize" />
+                  <BinaryString name="AttributesSerialize"></BinaryString>
                   <bool name="AutoLocalize">true</bool>
                   <token name="AutomaticSize">0</token>
                   <Color3 name="BackgroundColor3">
@@ -4343,8 +4536,10 @@ return UiLibrary
                   </Color3>
                   <token name="BorderMode">0</token>
                   <int name="BorderSizePixel">0</int>
+                  <SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
                   <bool name="ClipsDescendants">false</bool>
                   <bool name="Draggable">false</bool>
+                  <bool name="Interactable">true</bool>
                   <int name="LayoutOrder">0</int>
                   <Ref name="NextSelectionDown">null</Ref>
                   <Ref name="NextSelectionLeft">null</Ref>
@@ -4356,12 +4551,15 @@ return UiLibrary
                     <YS>0.5</YS>
                     <YO>0</YO>
                   </UDim2>
+                  <Ref name="RootLocalizationTable">null</Ref>
                   <float name="Rotation">0</float>
+                  <bool name="DefinesCapabilities">false</bool>
                   <bool name="Selectable">false</bool>
                   <token name="SelectionBehaviorDown">0</token>
                   <token name="SelectionBehaviorLeft">0</token>
                   <token name="SelectionBehaviorRight">0</token>
                   <token name="SelectionBehaviorUp">0</token>
+                  <bool name="SelectionGroup">false</bool>
                   <Ref name="SelectionImageObject">null</Ref>
                   <int name="SelectionOrder">0</int>
                   <UDim2 name="Size">
@@ -4373,14 +4571,15 @@ return UiLibrary
                   <token name="SizeConstraint">0</token>
                   <int64 name="SourceAssetId">-1</int64>
                   <token name="Style">0</token>
-                  <BinaryString name="Tags" />
+                  <BinaryString name="Tags"></BinaryString>
                   <bool name="Visible">true</bool>
                   <int name="ZIndex">2</int>
                 </Properties>
                 <Item class="UIPadding" referent="50">
                   <Properties>
                     <string name="Name">UIPadding</string>
-                    <BinaryString name="AttributesSerialize" />
+                    <BinaryString name="AttributesSerialize"></BinaryString>
+                    <SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
                     <UDim name="PaddingBottom">
                       <S>0</S>
                       <O>2</O>
@@ -4397,14 +4596,16 @@ return UiLibrary
                       <S>0</S>
                       <O>2</O>
                     </UDim>
+                    <bool name="DefinesCapabilities">false</bool>
                     <int64 name="SourceAssetId">-1</int64>
-                    <BinaryString name="Tags" />
+                    <BinaryString name="Tags"></BinaryString>
                   </Properties>
                 </Item>
                 <Item class="UIGridLayout" referent="51">
                   <Properties>
                     <string name="Name">UIGridLayout</string>
-                    <BinaryString name="AttributesSerialize" />
+                    <BinaryString name="AttributesSerialize"></BinaryString>
+                    <SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
                     <UDim2 name="CellPadding">
                       <XS>0</XS>
                       <XO>3</XO>
@@ -4420,10 +4621,11 @@ return UiLibrary
                     <token name="FillDirection">1</token>
                     <int name="FillDirectionMaxCells">0</int>
                     <token name="HorizontalAlignment">1</token>
+                    <bool name="DefinesCapabilities">false</bool>
                     <token name="SortOrder">2</token>
                     <int64 name="SourceAssetId">-1</int64>
                     <token name="StartCorner">0</token>
-                    <BinaryString name="Tags" />
+                    <BinaryString name="Tags"></BinaryString>
                     <token name="VerticalAlignment">1</token>
                   </Properties>
                 </Item>
@@ -4437,7 +4639,7 @@ return UiLibrary
                   <X>0</X>
                   <Y>0</Y>
                 </Vector2>
-                <BinaryString name="AttributesSerialize" />
+                <BinaryString name="AttributesSerialize"></BinaryString>
                 <bool name="AutoButtonColor">false</bool>
                 <bool name="AutoLocalize">true</bool>
                 <token name="AutomaticSize">0</token>
@@ -4454,13 +4656,23 @@ return UiLibrary
                 </Color3>
                 <token name="BorderMode">0</token>
                 <int name="BorderSizePixel">0</int>
+                <SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
                 <bool name="ClipsDescendants">false</bool>
                 <bool name="Draggable">false</bool>
+                <Ref name="HoverHapticEffect">null</Ref>
+                <Content name="HoverImageContent">
+                  <null>
+                  </null>
+                </Content>
                 <Color3 name="ImageColor3">
                   <R>1</R>
                   <G>1</G>
                   <B>1</B>
                 </Color3>
+                <Content name="ImageContent">
+                  <null>
+                  </null>
+                </Content>
                 <Vector2 name="ImageRectOffset">
                   <X>0</X>
                   <Y>0</Y>
@@ -4470,6 +4682,7 @@ return UiLibrary
                   <Y>0</Y>
                 </Vector2>
                 <float name="ImageTransparency">0</float>
+                <bool name="Interactable">true</bool>
                 <int name="LayoutOrder">0</int>
                 <bool name="Modal">false</bool>
                 <Ref name="NextSelectionDown">null</Ref>
@@ -4482,7 +4695,15 @@ return UiLibrary
                   <YS>0</YS>
                   <YO>0</YO>
                 </UDim2>
+                <Ref name="PressHapticEffect">null</Ref>
+                <Content name="PressedImageContent">
+                  <null>
+                  </null>
+                </Content>
+                <token name="ResampleMode">0</token>
+                <Ref name="RootLocalizationTable">null</Ref>
                 <float name="Rotation">0</float>
+                <bool name="DefinesCapabilities">false</bool>
                 <token name="ScaleType">0</token>
                 <bool name="Selectable">false</bool>
                 <bool name="Selected">false</bool>
@@ -4490,6 +4711,7 @@ return UiLibrary
                 <token name="SelectionBehaviorLeft">0</token>
                 <token name="SelectionBehaviorRight">0</token>
                 <token name="SelectionBehaviorUp">0</token>
+                <bool name="SelectionGroup">false</bool>
                 <Ref name="SelectionImageObject">null</Ref>
                 <int name="SelectionOrder">0</int>
                 <UDim2 name="Size">
@@ -4512,7 +4734,7 @@ return UiLibrary
                 <float name="SliceScale">1</float>
                 <int64 name="SourceAssetId">-1</int64>
                 <token name="Style">0</token>
-                <BinaryString name="Tags" />
+                <BinaryString name="Tags"></BinaryString>
                 <UDim2 name="TileSize">
                   <XS>1</XS>
                   <XO>0</XO>
@@ -4530,7 +4752,7 @@ return UiLibrary
                     <X>0.5</X>
                     <Y>0.5</Y>
                   </Vector2>
-                  <BinaryString name="AttributesSerialize" />
+                  <BinaryString name="AttributesSerialize"></BinaryString>
                   <bool name="AutoLocalize">true</bool>
                   <token name="AutomaticSize">0</token>
                   <Color3 name="BackgroundColor3">
@@ -4546,8 +4768,10 @@ return UiLibrary
                   </Color3>
                   <token name="BorderMode">0</token>
                   <int name="BorderSizePixel">0</int>
+                  <SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
                   <bool name="ClipsDescendants">false</bool>
                   <bool name="Draggable">false</bool>
+                  <bool name="Interactable">true</bool>
                   <int name="LayoutOrder">0</int>
                   <Ref name="NextSelectionDown">null</Ref>
                   <Ref name="NextSelectionLeft">null</Ref>
@@ -4559,12 +4783,15 @@ return UiLibrary
                     <YS>0.5</YS>
                     <YO>0</YO>
                   </UDim2>
+                  <Ref name="RootLocalizationTable">null</Ref>
                   <float name="Rotation">0</float>
+                  <bool name="DefinesCapabilities">false</bool>
                   <bool name="Selectable">false</bool>
                   <token name="SelectionBehaviorDown">0</token>
                   <token name="SelectionBehaviorLeft">0</token>
                   <token name="SelectionBehaviorRight">0</token>
                   <token name="SelectionBehaviorUp">0</token>
+                  <bool name="SelectionGroup">false</bool>
                   <Ref name="SelectionImageObject">null</Ref>
                   <int name="SelectionOrder">0</int>
                   <UDim2 name="Size">
@@ -4576,7 +4803,7 @@ return UiLibrary
                   <token name="SizeConstraint">0</token>
                   <int64 name="SourceAssetId">-1</int64>
                   <token name="Style">0</token>
-                  <BinaryString name="Tags" />
+                  <BinaryString name="Tags"></BinaryString>
                   <bool name="Visible">true</bool>
                   <int name="ZIndex">5</int>
                 </Properties>
@@ -4588,7 +4815,7 @@ return UiLibrary
                       <X>0.5</X>
                       <Y>0.5</Y>
                     </Vector2>
-                    <BinaryString name="AttributesSerialize" />
+                    <BinaryString name="AttributesSerialize"></BinaryString>
                     <bool name="AutoLocalize">true</bool>
                     <token name="AutomaticSize">0</token>
                     <Color3 name="BackgroundColor3">
@@ -4604,6 +4831,7 @@ return UiLibrary
                     </Color3>
                     <token name="BorderMode">0</token>
                     <int name="BorderSizePixel">0</int>
+                    <SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
                     <bool name="ClipsDescendants">false</bool>
                     <bool name="Draggable">false</bool>
                     <Color3 name="ImageColor3">
@@ -4611,6 +4839,10 @@ return UiLibrary
                       <G>1</G>
                       <B>1</B>
                     </Color3>
+                    <Content name="ImageContent">
+                      <null>
+                      </null>
+                    </Content>
                     <Vector2 name="ImageRectOffset">
                       <X>0</X>
                       <Y>0</Y>
@@ -4620,6 +4852,7 @@ return UiLibrary
                       <Y>0</Y>
                     </Vector2>
                     <float name="ImageTransparency">0</float>
+                    <bool name="Interactable">true</bool>
                     <int name="LayoutOrder">0</int>
                     <Ref name="NextSelectionDown">null</Ref>
                     <Ref name="NextSelectionLeft">null</Ref>
@@ -4631,13 +4864,17 @@ return UiLibrary
                       <YS>0.5</YS>
                       <YO>0</YO>
                     </UDim2>
+                    <token name="ResampleMode">0</token>
+                    <Ref name="RootLocalizationTable">null</Ref>
                     <float name="Rotation">0</float>
+                    <bool name="DefinesCapabilities">false</bool>
                     <token name="ScaleType">0</token>
                     <bool name="Selectable">false</bool>
                     <token name="SelectionBehaviorDown">0</token>
                     <token name="SelectionBehaviorLeft">0</token>
                     <token name="SelectionBehaviorRight">0</token>
                     <token name="SelectionBehaviorUp">0</token>
+                    <bool name="SelectionGroup">false</bool>
                     <Ref name="SelectionImageObject">null</Ref>
                     <int name="SelectionOrder">0</int>
                     <UDim2 name="Size">
@@ -4659,7 +4896,7 @@ return UiLibrary
                     </Rect2D>
                     <float name="SliceScale">1</float>
                     <int64 name="SourceAssetId">-1</int64>
-                    <BinaryString name="Tags" />
+                    <BinaryString name="Tags"></BinaryString>
                     <UDim2 name="TileSize">
                       <XS>1</XS>
                       <XO>0</XO>
@@ -4672,7 +4909,7 @@ return UiLibrary
                   <Item class="UICorner" referent="55">
                     <Properties>
                       <string name="Name">UICorner</string>
-                      <BinaryString name="AttributesSerialize" />
+                      <BinaryString name="AttributesSerialize"></BinaryString>
                       <UDim name="BottomLeftRadius">
                         <S>0</S>
                         <O>8</O>
@@ -4681,8 +4918,10 @@ return UiLibrary
                         <S>0</S>
                         <O>8</O>
                       </UDim>
+                      <SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
+                      <bool name="DefinesCapabilities">false</bool>
                       <int64 name="SourceAssetId">-1</int64>
-                      <BinaryString name="Tags" />
+                      <BinaryString name="Tags"></BinaryString>
                       <UDim name="TopLeftRadius">
                         <S>0</S>
                         <O>8</O>
@@ -4701,7 +4940,7 @@ return UiLibrary
                         <X>0.5</X>
                         <Y>0.5</Y>
                       </Vector2>
-                      <BinaryString name="AttributesSerialize" />
+                      <BinaryString name="AttributesSerialize"></BinaryString>
                       <bool name="AutoLocalize">true</bool>
                       <token name="AutomaticSize">0</token>
                       <Color3 name="BackgroundColor3">
@@ -4717,6 +4956,7 @@ return UiLibrary
                       </Color3>
                       <token name="BorderMode">0</token>
                       <int name="BorderSizePixel">0</int>
+                      <SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
                       <bool name="ClipsDescendants">false</bool>
                       <bool name="Draggable">false</bool>
                       <Color3 name="ImageColor3">
@@ -4724,6 +4964,10 @@ return UiLibrary
                         <G>1</G>
                         <B>1</B>
                       </Color3>
+                      <Content name="ImageContent">
+                        <null>
+                        </null>
+                      </Content>
                       <Vector2 name="ImageRectOffset">
                         <X>0</X>
                         <Y>0</Y>
@@ -4733,6 +4977,7 @@ return UiLibrary
                         <Y>0</Y>
                       </Vector2>
                       <float name="ImageTransparency">0</float>
+                      <bool name="Interactable">true</bool>
                       <int name="LayoutOrder">0</int>
                       <Ref name="NextSelectionDown">null</Ref>
                       <Ref name="NextSelectionLeft">null</Ref>
@@ -4744,13 +4989,17 @@ return UiLibrary
                         <YS>0.5</YS>
                         <YO>0</YO>
                       </UDim2>
+                      <token name="ResampleMode">0</token>
+                      <Ref name="RootLocalizationTable">null</Ref>
                       <float name="Rotation">0</float>
+                      <bool name="DefinesCapabilities">false</bool>
                       <token name="ScaleType">0</token>
                       <bool name="Selectable">false</bool>
                       <token name="SelectionBehaviorDown">0</token>
                       <token name="SelectionBehaviorLeft">0</token>
                       <token name="SelectionBehaviorRight">0</token>
                       <token name="SelectionBehaviorUp">0</token>
+                      <bool name="SelectionGroup">false</bool>
                       <Ref name="SelectionImageObject">null</Ref>
                       <int name="SelectionOrder">0</int>
                       <UDim2 name="Size">
@@ -4772,7 +5021,7 @@ return UiLibrary
                       </Rect2D>
                       <float name="SliceScale">1</float>
                       <int64 name="SourceAssetId">-1</int64>
-                      <BinaryString name="Tags" />
+                      <BinaryString name="Tags"></BinaryString>
                       <UDim2 name="TileSize">
                         <XS>1</XS>
                         <XO>0</XO>
@@ -4785,7 +5034,7 @@ return UiLibrary
                     <Item class="UICorner" referent="57">
                       <Properties>
                         <string name="Name">UICorner</string>
-                        <BinaryString name="AttributesSerialize" />
+                        <BinaryString name="AttributesSerialize"></BinaryString>
                         <UDim name="BottomLeftRadius">
                           <S>0</S>
                           <O>8</O>
@@ -4794,8 +5043,10 @@ return UiLibrary
                           <S>0</S>
                           <O>8</O>
                         </UDim>
+                        <SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
+                        <bool name="DefinesCapabilities">false</bool>
                         <int64 name="SourceAssetId">-1</int64>
-                        <BinaryString name="Tags" />
+                        <BinaryString name="Tags"></BinaryString>
                         <UDim name="TopLeftRadius">
                           <S>0</S>
                           <O>8</O>
@@ -4814,7 +5065,7 @@ return UiLibrary
                           <X>0.5</X>
                           <Y>0.5</Y>
                         </Vector2>
-                        <BinaryString name="AttributesSerialize" />
+                        <BinaryString name="AttributesSerialize"></BinaryString>
                         <bool name="AutoLocalize">true</bool>
                         <token name="AutomaticSize">0</token>
                         <Color3 name="BackgroundColor3">
@@ -4830,17 +5081,27 @@ return UiLibrary
                         </Color3>
                         <token name="BorderMode">0</token>
                         <int name="BorderSizePixel">0</int>
+                        <SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
                         <bool name="ClipsDescendants">false</bool>
                         <bool name="Draggable">false</bool>
+                        <Font name="FontFace">
+                          <Family>
+                            <url>rbxasset://fonts/families/SourceSansPro.json</url>
+                          </Family>
+                          <Weight>300</Weight>
+                          <Style>Normal</Style>
+                        </Font>
+                        <bool name="Interactable">true</bool>
                         <int name="LayoutOrder">0</int>
                         <float name="LineHeight">1</float>
-                        <string name="LocalizationMatchIdentifier" />
-                        <string name="LocalizationMatchedSourceText" />
+                        <string name="LocalizationMatchIdentifier"></string>
+                        <string name="LocalizationMatchedSourceText"></string>
                         <int name="MaxVisibleGraphemes">-1</int>
                         <Ref name="NextSelectionDown">null</Ref>
                         <Ref name="NextSelectionLeft">null</Ref>
                         <Ref name="NextSelectionRight">null</Ref>
                         <Ref name="NextSelectionUp">null</Ref>
+                        <string name="OpenTypeFeatures"></string>
                         <UDim2 name="Position">
                           <XS>0.5</XS>
                           <XO>0</XO>
@@ -4848,12 +5109,15 @@ return UiLibrary
                           <YO>0</YO>
                         </UDim2>
                         <bool name="RichText">false</bool>
+                        <Ref name="RootLocalizationTable">null</Ref>
                         <float name="Rotation">0</float>
+                        <bool name="DefinesCapabilities">false</bool>
                         <bool name="Selectable">false</bool>
                         <token name="SelectionBehaviorDown">0</token>
                         <token name="SelectionBehaviorLeft">0</token>
                         <token name="SelectionBehaviorRight">0</token>
                         <token name="SelectionBehaviorUp">0</token>
+                        <bool name="SelectionGroup">false</bool>
                         <Ref name="SelectionImageObject">null</Ref>
                         <int name="SelectionOrder">0</int>
                         <UDim2 name="Size">
@@ -4864,7 +5128,7 @@ return UiLibrary
                         </UDim2>
                         <token name="SizeConstraint">0</token>
                         <int64 name="SourceAssetId">-1</int64>
-                        <BinaryString name="Tags" />
+                        <BinaryString name="Tags"></BinaryString>
                         <string name="Text">Notification</string>
                         <Color3 name="TextColor3">
                           <R>1</R>
@@ -4897,7 +5161,7 @@ return UiLibrary
                           <X>0.5</X>
                           <Y>0</Y>
                         </Vector2>
-                        <BinaryString name="AttributesSerialize" />
+                        <BinaryString name="AttributesSerialize"></BinaryString>
                         <bool name="AutoLocalize">true</bool>
                         <token name="AutomaticSize">0</token>
                         <Color3 name="BackgroundColor3">
@@ -4913,17 +5177,27 @@ return UiLibrary
                         </Color3>
                         <token name="BorderMode">0</token>
                         <int name="BorderSizePixel">0</int>
+                        <SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
                         <bool name="ClipsDescendants">false</bool>
                         <bool name="Draggable">false</bool>
+                        <Font name="FontFace">
+                          <Family>
+                            <url>rbxasset://fonts/families/SourceSansPro.json</url>
+                          </Family>
+                          <Weight>300</Weight>
+                          <Style>Normal</Style>
+                        </Font>
+                        <bool name="Interactable">true</bool>
                         <int name="LayoutOrder">0</int>
                         <float name="LineHeight">1</float>
-                        <string name="LocalizationMatchIdentifier" />
-                        <string name="LocalizationMatchedSourceText" />
+                        <string name="LocalizationMatchIdentifier"></string>
+                        <string name="LocalizationMatchedSourceText"></string>
                         <int name="MaxVisibleGraphemes">-1</int>
                         <Ref name="NextSelectionDown">null</Ref>
                         <Ref name="NextSelectionLeft">null</Ref>
                         <Ref name="NextSelectionRight">null</Ref>
                         <Ref name="NextSelectionUp">null</Ref>
+                        <string name="OpenTypeFeatures"></string>
                         <UDim2 name="Position">
                           <XS>0.5</XS>
                           <XO>0</XO>
@@ -4931,12 +5205,15 @@ return UiLibrary
                           <YO>25</YO>
                         </UDim2>
                         <bool name="RichText">false</bool>
+                        <Ref name="RootLocalizationTable">null</Ref>
                         <float name="Rotation">0</float>
+                        <bool name="DefinesCapabilities">false</bool>
                         <bool name="Selectable">false</bool>
                         <token name="SelectionBehaviorDown">0</token>
                         <token name="SelectionBehaviorLeft">0</token>
                         <token name="SelectionBehaviorRight">0</token>
                         <token name="SelectionBehaviorUp">0</token>
+                        <bool name="SelectionGroup">false</bool>
                         <Ref name="SelectionImageObject">null</Ref>
                         <int name="SelectionOrder">0</int>
                         <UDim2 name="Size">
@@ -4947,7 +5224,7 @@ return UiLibrary
                         </UDim2>
                         <token name="SizeConstraint">0</token>
                         <int64 name="SourceAssetId">-1</int64>
-                        <BinaryString name="Tags" />
+                        <BinaryString name="Tags"></BinaryString>
                         <string name="Text">Example text</string>
                         <Color3 name="TextColor3">
                           <R>1</R>
@@ -4980,7 +5257,7 @@ return UiLibrary
                           <X>0.5</X>
                           <Y>1</Y>
                         </Vector2>
-                        <BinaryString name="AttributesSerialize" />
+                        <BinaryString name="AttributesSerialize"></BinaryString>
                         <bool name="AutoButtonColor">false</bool>
                         <bool name="AutoLocalize">true</bool>
                         <token name="AutomaticSize">0</token>
@@ -4997,32 +5274,47 @@ return UiLibrary
                         </Color3>
                         <token name="BorderMode">0</token>
                         <int name="BorderSizePixel">1</int>
+                        <SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
                         <bool name="ClipsDescendants">false</bool>
                         <bool name="Draggable">false</bool>
+                        <Font name="FontFace">
+                          <Family>
+                            <url>rbxasset://fonts/families/SourceSansPro.json</url>
+                          </Family>
+                          <Weight>300</Weight>
+                          <Style>Normal</Style>
+                        </Font>
+                        <Ref name="HoverHapticEffect">null</Ref>
+                        <bool name="Interactable">true</bool>
                         <int name="LayoutOrder">1</int>
                         <float name="LineHeight">1</float>
-                        <string name="LocalizationMatchIdentifier" />
-                        <string name="LocalizationMatchedSourceText" />
+                        <string name="LocalizationMatchIdentifier"></string>
+                        <string name="LocalizationMatchedSourceText"></string>
                         <int name="MaxVisibleGraphemes">-1</int>
                         <bool name="Modal">false</bool>
                         <Ref name="NextSelectionDown">null</Ref>
                         <Ref name="NextSelectionLeft">null</Ref>
                         <Ref name="NextSelectionRight">null</Ref>
                         <Ref name="NextSelectionUp">null</Ref>
+                        <string name="OpenTypeFeatures"></string>
                         <UDim2 name="Position">
                           <XS>0.5</XS>
                           <XO>0</XO>
                           <YS>1</YS>
                           <YO>-5</YO>
                         </UDim2>
+                        <Ref name="PressHapticEffect">null</Ref>
                         <bool name="RichText">false</bool>
+                        <Ref name="RootLocalizationTable">null</Ref>
                         <float name="Rotation">0</float>
+                        <bool name="DefinesCapabilities">false</bool>
                         <bool name="Selectable">false</bool>
                         <bool name="Selected">false</bool>
                         <token name="SelectionBehaviorDown">0</token>
                         <token name="SelectionBehaviorLeft">0</token>
                         <token name="SelectionBehaviorRight">0</token>
                         <token name="SelectionBehaviorUp">0</token>
+                        <bool name="SelectionGroup">false</bool>
                         <Ref name="SelectionImageObject">null</Ref>
                         <int name="SelectionOrder">0</int>
                         <UDim2 name="Size">
@@ -5034,7 +5326,7 @@ return UiLibrary
                         <token name="SizeConstraint">0</token>
                         <int64 name="SourceAssetId">-1</int64>
                         <token name="Style">0</token>
-                        <BinaryString name="Tags" />
+                        <BinaryString name="Tags"></BinaryString>
                         <string name="Text">Close</string>
                         <Color3 name="TextColor3">
                           <R>1</R>
@@ -5064,7 +5356,7 @@ return UiLibrary
                 <Item class="UICorner" referent="61">
                   <Properties>
                     <string name="Name">UICorner</string>
-                    <BinaryString name="AttributesSerialize" />
+                    <BinaryString name="AttributesSerialize"></BinaryString>
                     <UDim name="BottomLeftRadius">
                       <S>0</S>
                       <O>8</O>
@@ -5073,8 +5365,10 @@ return UiLibrary
                       <S>0</S>
                       <O>8</O>
                     </UDim>
+                    <SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
+                    <bool name="DefinesCapabilities">false</bool>
                     <int64 name="SourceAssetId">-1</int64>
-                    <BinaryString name="Tags" />
+                    <BinaryString name="Tags"></BinaryString>
                     <UDim name="TopLeftRadius">
                       <S>0</S>
                       <O>8</O>
@@ -5096,7 +5390,7 @@ return UiLibrary
                 <X>0</X>
                 <Y>0</Y>
               </Vector2>
-              <BinaryString name="AttributesSerialize" />
+              <BinaryString name="AttributesSerialize"></BinaryString>
               <bool name="AutoLocalize">true</bool>
               <token name="AutomaticSize">0</token>
               <Color3 name="BackgroundColor3">
@@ -5112,8 +5406,10 @@ return UiLibrary
               </Color3>
               <token name="BorderMode">0</token>
               <int name="BorderSizePixel">1</int>
+              <SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
               <bool name="ClipsDescendants">false</bool>
               <bool name="Draggable">false</bool>
+              <bool name="Interactable">true</bool>
               <int name="LayoutOrder">1</int>
               <Ref name="NextSelectionDown">null</Ref>
               <Ref name="NextSelectionLeft">null</Ref>
@@ -5125,12 +5421,15 @@ return UiLibrary
                 <YS>0</YS>
                 <YO>0</YO>
               </UDim2>
+              <Ref name="RootLocalizationTable">null</Ref>
               <float name="Rotation">0</float>
+              <bool name="DefinesCapabilities">false</bool>
               <bool name="Selectable">false</bool>
               <token name="SelectionBehaviorDown">0</token>
               <token name="SelectionBehaviorLeft">0</token>
               <token name="SelectionBehaviorRight">0</token>
               <token name="SelectionBehaviorUp">0</token>
+              <bool name="SelectionGroup">false</bool>
               <Ref name="SelectionImageObject">null</Ref>
               <int name="SelectionOrder">0</int>
               <UDim2 name="Size">
@@ -5142,7 +5441,7 @@ return UiLibrary
               <token name="SizeConstraint">0</token>
               <int64 name="SourceAssetId">-1</int64>
               <token name="Style">0</token>
-              <BinaryString name="Tags" />
+              <BinaryString name="Tags"></BinaryString>
               <bool name="Visible">true</bool>
               <int name="ZIndex">2</int>
             </Properties>
@@ -5154,7 +5453,7 @@ return UiLibrary
                   <X>0</X>
                   <Y>0.5</Y>
                 </Vector2>
-                <BinaryString name="AttributesSerialize" />
+                <BinaryString name="AttributesSerialize"></BinaryString>
                 <bool name="AutoLocalize">true</bool>
                 <token name="AutomaticSize">0</token>
                 <Color3 name="BackgroundColor3">
@@ -5170,19 +5469,29 @@ return UiLibrary
                 </Color3>
                 <token name="BorderMode">0</token>
                 <int name="BorderSizePixel">1</int>
+                <SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
                 <bool name="ClearTextOnFocus">false</bool>
                 <bool name="ClipsDescendants">true</bool>
                 <bool name="Draggable">false</bool>
+                <Font name="FontFace">
+                  <Family>
+                    <url>rbxasset://fonts/families/SourceSansPro.json</url>
+                  </Family>
+                  <Weight>300</Weight>
+                  <Style>Normal</Style>
+                </Font>
+                <bool name="Interactable">true</bool>
                 <int name="LayoutOrder">1</int>
                 <float name="LineHeight">1</float>
-                <string name="LocalizationMatchIdentifier" />
-                <string name="LocalizationMatchedSourceText" />
+                <string name="LocalizationMatchIdentifier"></string>
+                <string name="LocalizationMatchedSourceText"></string>
                 <int name="MaxVisibleGraphemes">-1</int>
                 <bool name="MultiLine">false</bool>
                 <Ref name="NextSelectionDown">null</Ref>
                 <Ref name="NextSelectionLeft">null</Ref>
                 <Ref name="NextSelectionRight">null</Ref>
                 <Ref name="NextSelectionUp">null</Ref>
+                <string name="OpenTypeFeatures"></string>
                 <Color3 name="PlaceholderColor3">
                   <R>0.33333334</R>
                   <G>0.33333334</G>
@@ -5196,12 +5505,15 @@ return UiLibrary
                   <YO>0</YO>
                 </UDim2>
                 <bool name="RichText">false</bool>
+                <Ref name="RootLocalizationTable">null</Ref>
                 <float name="Rotation">0</float>
+                <bool name="DefinesCapabilities">false</bool>
                 <bool name="Selectable">false</bool>
                 <token name="SelectionBehaviorDown">0</token>
                 <token name="SelectionBehaviorLeft">0</token>
                 <token name="SelectionBehaviorRight">0</token>
                 <token name="SelectionBehaviorUp">0</token>
+                <bool name="SelectionGroup">false</bool>
                 <Ref name="SelectionImageObject">null</Ref>
                 <int name="SelectionOrder">0</int>
                 <bool name="ShowNativeInput">true</bool>
@@ -5213,8 +5525,8 @@ return UiLibrary
                 </UDim2>
                 <token name="SizeConstraint">0</token>
                 <int64 name="SourceAssetId">-1</int64>
-                <BinaryString name="Tags" />
-                <string name="Text" />
+                <BinaryString name="Tags"></BinaryString>
+                <string name="Text"></string>
                 <Color3 name="TextColor3">
                   <R>1</R>
                   <G>1</G>
@@ -5247,7 +5559,7 @@ return UiLibrary
                   <X>1</X>
                   <Y>0.5</Y>
                 </Vector2>
-                <BinaryString name="AttributesSerialize" />
+                <BinaryString name="AttributesSerialize"></BinaryString>
                 <bool name="AutoButtonColor">false</bool>
                 <bool name="AutoLocalize">true</bool>
                 <token name="AutomaticSize">0</token>
@@ -5264,13 +5576,22 @@ return UiLibrary
                 </Color3>
                 <token name="BorderMode">0</token>
                 <int name="BorderSizePixel">1</int>
+                <SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
                 <bool name="ClipsDescendants">false</bool>
                 <bool name="Draggable">false</bool>
+                <Ref name="HoverHapticEffect">null</Ref>
+                <Content name="HoverImageContent">
+                  <null>
+                  </null>
+                </Content>
                 <Color3 name="ImageColor3">
                   <R>1</R>
                   <G>1</G>
                   <B>1</B>
                 </Color3>
+                <Content name="ImageContent">
+                  <uri>rbxassetid://72207659330742</uri>
+                </Content>
                 <Vector2 name="ImageRectOffset">
                   <X>0</X>
                   <Y>0</Y>
@@ -5280,6 +5601,7 @@ return UiLibrary
                   <Y>0</Y>
                 </Vector2>
                 <float name="ImageTransparency">0</float>
+                <bool name="Interactable">true</bool>
                 <int name="LayoutOrder">0</int>
                 <bool name="Modal">false</bool>
                 <Ref name="NextSelectionDown">null</Ref>
@@ -5292,7 +5614,15 @@ return UiLibrary
                   <YS>0.5</YS>
                   <YO>0</YO>
                 </UDim2>
+                <Ref name="PressHapticEffect">null</Ref>
+                <Content name="PressedImageContent">
+                  <null>
+                  </null>
+                </Content>
+                <token name="ResampleMode">0</token>
+                <Ref name="RootLocalizationTable">null</Ref>
                 <float name="Rotation">0</float>
+                <bool name="DefinesCapabilities">false</bool>
                 <token name="ScaleType">0</token>
                 <bool name="Selectable">true</bool>
                 <bool name="Selected">false</bool>
@@ -5300,6 +5630,7 @@ return UiLibrary
                 <token name="SelectionBehaviorLeft">0</token>
                 <token name="SelectionBehaviorRight">0</token>
                 <token name="SelectionBehaviorUp">0</token>
+                <bool name="SelectionGroup">false</bool>
                 <Ref name="SelectionImageObject">null</Ref>
                 <int name="SelectionOrder">0</int>
                 <UDim2 name="Size">
@@ -5322,7 +5653,7 @@ return UiLibrary
                 <float name="SliceScale">1</float>
                 <int64 name="SourceAssetId">-1</int64>
                 <token name="Style">0</token>
-                <BinaryString name="Tags" />
+                <BinaryString name="Tags"></BinaryString>
                 <UDim2 name="TileSize">
                   <XS>1</XS>
                   <XO>0</XO>
@@ -5338,7 +5669,7 @@ return UiLibrary
         <Item class="ModuleScript" referent="65">
           <Properties>
             <string name="Name">Tab</string>
-            <ProtectedString name="Source">--!strict
+            <ProtectedString name="Source"><![CDATA[--!strict
 local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
@@ -5487,12 +5818,12 @@ function Tab.new(uiFrame: typeof(mainUiFrame), clickedCallback: any, name: strin
 end
 
 return Tab
-</ProtectedString>
+]]></ProtectedString>
           </Properties>
           <Item class="ModuleScript" referent="66">
             <Properties>
               <string name="Name">Button</string>
-              <ProtectedString name="Source">--!strict
+              <ProtectedString name="Source"><![CDATA[--!strict
 local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
@@ -5622,13 +5953,13 @@ function Button.new(parent: GuiObject, text: string, callback: any, autoColor: b
 end
 
 return Button
-</ProtectedString>
+]]></ProtectedString>
             </Properties>
           </Item>
           <Item class="ModuleScript" referent="67">
             <Properties>
               <string name="Name">Input</string>
-              <ProtectedString name="Source">--!strict
+              <ProtectedString name="Source"><![CDATA[--!strict
 local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
@@ -5778,13 +6109,13 @@ function Input.new(parent: GuiObject, placeholderText: string, callback: any): I
     return self
 end
 
-return Input</ProtectedString>
+return Input]]></ProtectedString>
             </Properties>
           </Item>
           <Item class="ModuleScript" referent="68">
             <Properties>
               <string name="Name">Label</string>
-              <ProtectedString name="Source">--!strict
+              <ProtectedString name="Source"><![CDATA[--!strict
 local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
@@ -5885,13 +6216,13 @@ function Label.new(parent: typeof(asset), text: string): Label
 end
 
 return Label
-</ProtectedString>
+]]></ProtectedString>
             </Properties>
           </Item>
           <Item class="ModuleScript" referent="69">
             <Properties>
               <string name="Name">List</string>
-              <ProtectedString name="Source">--!strict
+              <ProtectedString name="Source"><![CDATA[--!strict
 local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
@@ -6049,12 +6380,12 @@ function List.new(parent: typeof(tabAsset)): List
 end
 
 return List
-</ProtectedString>
+]]></ProtectedString>
             </Properties>
             <Item class="ModuleScript" referent="70">
               <Properties>
                 <string name="Name">ListElement</string>
-                <ProtectedString name="Source">--!strict
+                <ProtectedString name="Source"><![CDATA[--!strict
 local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
@@ -6219,14 +6550,14 @@ function ListElement.new(parent: typeof(listAsset.ScrollingFrame), removedCallba
     return self
 end
 
-return ListElement</ProtectedString>
+return ListElement]]></ProtectedString>
               </Properties>
             </Item>
           </Item>
           <Item class="ModuleScript" referent="71">
             <Properties>
               <string name="Name">Split</string>
-              <ProtectedString name="Source">--!strict
+              <ProtectedString name="Source"><![CDATA[--!strict
 local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
@@ -6297,7 +6628,7 @@ local function sizeElement(self: Split, instance: GuiObject)
 end
 
 local function CreateButton(self: Split, text: string, callback: any): Button.Button
-    assert(#self._elements &lt;= 2, "split can only have 2 elements")
+    assert(#self._elements <= 2, "split can only have 2 elements")
 
     local button = Button.new(self.instance, text, callback)
     sizeElement(self, button.instance)
@@ -6306,7 +6637,7 @@ local function CreateButton(self: Split, text: string, callback: any): Button.Bu
 end
 
 local function CreateInput(self: Split, placeholderText: string, callback: any): Input.Input
-    assert(#self._elements &lt;= 2, "split can only have 2 elements")
+    assert(#self._elements <= 2, "split can only have 2 elements")
 
     local input = Input.new(self.instance, placeholderText, callback)
     sizeElement(self, input.instance)
@@ -6315,7 +6646,7 @@ local function CreateInput(self: Split, placeholderText: string, callback: any):
 end
 
 local function CreateToggle(self: Split, text: string, callback: any, defaultState: boolean?): Toggle.Toggle
-    assert(#self._elements &lt;= 2, "split can only have 2 elements")
+    assert(#self._elements <= 2, "split can only have 2 elements")
 
     local toggle = Toggle.new(self.instance, text, callback, defaultState)
     sizeElement(self, toggle.instance)
@@ -6372,13 +6703,13 @@ function Split.new(parent: GuiObject): Split
 end
 
 return Split
-</ProtectedString>
+]]></ProtectedString>
             </Properties>
           </Item>
           <Item class="ModuleScript" referent="72">
             <Properties>
               <string name="Name">Toggle</string>
-              <ProtectedString name="Source">--!strict
+              <ProtectedString name="Source"><![CDATA[--!strict
 local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
@@ -6523,14 +6854,14 @@ function Toggle.new(parent: GuiObject, text: string, callback: any, defaultState
     return self
 end
 
-return Toggle</ProtectedString>
+return Toggle]]></ProtectedString>
             </Properties>
           </Item>
         </Item>
         <Item class="ModuleScript" referent="73">
           <Properties>
             <string name="Name">Theme</string>
-            <ProtectedString name="Source">--!strict
+            <ProtectedString name="Source"><![CDATA[--!strict
 local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
@@ -6692,7 +7023,7 @@ local function normalizeRawTheme(rawTheme: RawTheme, themeId: string): Theme
 
 		local valueType = type( (value :: { any })[1] )
 		if valueType == "string" then
-			if #value &gt; 2 then error(tostring(key) .. " could not create a StudioStyleGuide") end
+			if #value > 2 then error(tostring(key) .. " could not create a StudioStyleGuide") end
 
 			local color, modifier = table.unpack(value :: any)
 
@@ -6842,13 +7173,13 @@ function Theme.remove(themeId: string)
 end
 
 return Theme
-</ProtectedString>
+]]></ProtectedString>
           </Properties>
         </Item>
         <Item class="ModuleScript" referent="74">
           <Properties>
             <string name="Name">Tip</string>
-            <ProtectedString name="Source">--!strict
+            <ProtectedString name="Source"><![CDATA[--!strict
 local _old_require = require
 local function require(target)
     if typeof(target) == "string" then
@@ -6966,7 +7297,7 @@ function Tip.new(tipBar: TipBarAsset, text: string): Tip
     return self
 end
 
-return Tip</ProtectedString>
+return Tip]]></ProtectedString>
           </Properties>
         </Item>
       </Item>
