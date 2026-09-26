@@ -147,7 +147,7 @@ function ApiDump.get(): ApiDump?
 		return nil
 	end
 
-	local apiDump = HttpService:JSONDecode(response :: string)
+	local apiDump = HttpService:JSONDecode(response )
 	cacheDump(apiDump)
 	return cachedDump
 end

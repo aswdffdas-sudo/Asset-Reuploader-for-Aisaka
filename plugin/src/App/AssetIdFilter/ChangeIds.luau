@@ -162,7 +162,7 @@ local function transferProperties(oldInstance: Instance, newInstance: Instance)
 
     for _, property in pairs(cachedProperties) do
         if property == "Parent" or property == "Sandboxed" or property == "brickColor" then continue end
-        (newInstance :: any)[property] = (oldInstance :: any)[property]
+        (newInstance )[property] = (oldInstance )[property]
     end
 end
 
@@ -188,7 +188,7 @@ local function setMeshPart(meshPart: MeshPart, oldId: number, newId: number)
         CollisionFidelity = meshPart.CollisionFidelity,
         RenderFidelity = meshPart.RenderFidelity,
         FluidFidelity = meshPart.FluidFidelity
-    } :: any)
+    } )
 
     local success, result = pcall(function()
         transferProperties(meshPart, newMeshPart)
@@ -256,7 +256,7 @@ return function(filteredIds: { [number]: { Instance } }, idsToChange: { IdPair }
                     local className = instance.ClassName
                     local setInstanceId = instanceIdSetters[className]
                     if setInstanceId then
-                        local success, result = pcall(setInstanceId :: any, instance, oldId, newId)
+                        local success, result = pcall(setInstanceId , instance, oldId, newId)
                         if success then
                             changedCount = changedCount + 1
                             print(string.format("[Asset Reuploader] Replaced %s in %s (%s -> %s)", className, instance:GetFullName(), tostring(oldId), tostring(newId)))

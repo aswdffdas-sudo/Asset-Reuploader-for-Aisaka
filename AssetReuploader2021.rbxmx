@@ -172,7 +172,7 @@ local function getLatestVersion(): string
     local success, objects = pcall(game.GetObjects, game, PLUGIN_ID)
 	if not success then return currentVersion end
 	
-	local latestPlugin = (objects :: any)[1]
+	local latestPlugin = (objects )[1]
 	local latestVersion = latestPlugin.Version.Value
 	latestPlugin:Destroy()
 
@@ -346,7 +346,7 @@ function ApiDump.get(): ApiDump?
 		return nil
 	end
 
-	local apiDump = HttpService:JSONDecode(response :: string)
+	local apiDump = HttpService:JSONDecode(response )
 	cacheDump(apiDump)
 	return cachedDump
 end
@@ -640,7 +640,7 @@ local function transferProperties(oldInstance: Instance, newInstance: Instance)
 
     for _, property in pairs(cachedProperties) do
         if property == "Parent" or property == "Sandboxed" or property == "brickColor" then continue end
-        (newInstance :: any)[property] = (oldInstance :: any)[property]
+        (newInstance )[property] = (oldInstance )[property]
     end
 end
 
@@ -666,7 +666,7 @@ local function setMeshPart(meshPart: MeshPart, oldId: number, newId: number)
         CollisionFidelity = meshPart.CollisionFidelity,
         RenderFidelity = meshPart.RenderFidelity,
         FluidFidelity = meshPart.FluidFidelity
-    } :: any)
+    } )
 
     local success, result = pcall(function()
         transferProperties(meshPart, newMeshPart)
@@ -734,7 +734,7 @@ return function(filteredIds: { [number]: { Instance } }, idsToChange: { IdPair }
                     local className = instance.ClassName
                     local setInstanceId = instanceIdSetters[className]
                     if setInstanceId then
-                        local success, result = pcall(setInstanceId :: any, instance, oldId, newId)
+                        local success, result = pcall(setInstanceId , instance, oldId, newId)
                         if success then
                             changedCount = changedCount + 1
                             print(string.format("[Asset Reuploader] Replaced %s in %s (%s -> %s)", className, instance:GetFullName(), tostring(oldId), tostring(newId)))
@@ -870,12 +870,12 @@ local function getStringIds(filteredInstance: Instance, str: string): { [number]
 end
 
 local function getAnimationId(animation: Animation): { [number]: { Instance } }
-	local s = tostring((animation :: any).AnimationId)
+	local s = tostring((animation ).AnimationId)
 	return getId(animation, pickBestValidAssetId(s))
 end
 
 local function getSoundId(sound: Sound): { [number]: { Instance } }
-	local s = tostring((sound :: any).SoundId)
+	local s = tostring((sound ).SoundId)
 	return getId(sound, pickBestValidAssetId(s))
 end
 
@@ -896,12 +896,12 @@ local function getCharacterMesh(characterMesh: CharacterMesh): { [number]: { Ins
 end
 
 local function getMeshPart(meshPart: MeshPart): { [number]: { Instance } }
-	local s = tostring((meshPart :: any).MeshId)
+	local s = tostring((meshPart ).MeshId)
 	return getId(meshPart, pickBestValidAssetId(s))
 end
 
 local function getSpecialMesh(specialMesh: SpecialMesh): { [number]: { Instance } }
-	local s = tostring((specialMesh :: any).MeshId)
+	local s = tostring((specialMesh ).MeshId)
 	return getId(specialMesh, pickBestValidAssetId(s))
 end
 
@@ -919,7 +919,7 @@ local instanceIdGetters = {
 }
 
 local function createFilterMap(instanceFilter)
-    local filterMap = {} :: any -- yes my code getting lazy i apologize... v2.0.0 will do good code
+    local filterMap = {}  -- yes my code getting lazy i apologize... v2.0.0 will do good code
     for _, className in pairs(instanceFilter) do
         if className == "LuaSourceContainer" then
             filterMap["LocalScript"] = getScriptIds
@@ -943,7 +943,7 @@ local function merge(originalIdMap: { [number]: { Instance } }, otherIdMap: { [n
 
         for _, instance in pairs(instanceArray) do
             if table.find(idInstances, instance) then continue end
-            table.insert(idInstances :: { any }, instance)
+            table.insert(idInstances , instance)
         end
     end
 end
@@ -1367,7 +1367,7 @@ function getGameInfo(): (boolean, number, number)
         return false, creatorId, placeId
     end
 
-    local creatorInfo = (result :: ProductInfo).Creator
+    local creatorInfo = (result ).Creator
     local isGroup = creatorInfo.CreatorType == "Group"
     return isGroup, creatorInfo.CreatorTargetId, placeId
 end
@@ -1421,9 +1421,9 @@ return function(plugin: any, ui: any, filterOptions: any, assetType: string, pla
             return
         end
 
-        if #(result :: any) == 0 then return end
-        AssetIdFilter.replaceIds(filteredIds, result :: any)
-        warn("Replaced " .. tostring(#(result :: any)) .. " ids")
+        if #(result ) == 0 then return end
+        AssetIdFilter.replaceIds(filteredIds, result )
+        warn("Replaced " .. tostring(#(result )) .. " ids")
     end
 
     connection.onDataRecieved = onDataRecieved
@@ -1446,7 +1446,7 @@ return function(plugin: any, ui: any, filterOptions: any, assetType: string, pla
     
     local success, statusCode = connection:Send("/reupload", HttpService:JSONEncode(request))
     if not success then
-        local message: string = (StatusCodes :: any)[statusCode] or ("Unable to send data to localhost.\n" .. statusCode)
+        local message: string = (StatusCodes )[statusCode] or ("Unable to send data to localhost.\n" .. statusCode)
         ui:Notify("Notification", message)
 
         busy = false
@@ -1696,7 +1696,7 @@ return function(ui: UiLibrary.Ui, plugin: Plugin)
         for _, value in pairs(placesListValues) do
             table.insert(list, tonumber(value))
         end
-        return list :: { number }
+        return list 
     end
 	
 	local split1 = tab:CreateSplit()
@@ -1723,7 +1723,7 @@ return function(ui: UiLibrary.Ui, plugin: Plugin)
             return 
         end
 
-        local assetTypeId = (productInfo :: any).AssetTypeId
+        local assetTypeId = (productInfo ).AssetTypeId
 		if assetTypeId ~= 9 then
             ui:Notify("Notification", "Invalid place id.") 
             return 
@@ -1738,7 +1738,7 @@ return function(ui: UiLibrary.Ui, plugin: Plugin)
 		local element = placeList:CreateElement(stringPlaceId)
             :AddDestroyButton()
         
-        element.instance.TextLabel.Text = "(" .. tostring(placeId) .. ") " .. tostring((productInfo :: any).Name)
+        element.instance.TextLabel.Text = "(" .. tostring(placeId) .. ") " .. tostring((productInfo ).Name)
 	end)
 	placeInput:AddTip(ui:CreateTip(
 		"Reuploading needs a place id. Public games under the creator are found automatically."
@@ -2001,7 +2001,7 @@ return function(ui: UiLibrary.Ui, plugin: Plugin)
         local thread = coroutine.running()
         local button; button = tab:CreateButton("Failed to get api dump: retry", function()
             if not ApiDump.get() then return end
-            (button :: any):Destroy()
+            (button ):Destroy()
             coroutine.resume(thread)
         end)
         coroutine.yield(thread)
@@ -2128,7 +2128,7 @@ return function(ui: UiLibrary.Ui, plugin: Plugin)
     local tab = ui:CreateTab("Replace")
 
     local replaceButton = tab:CreateButton("Replace ids", function()
-        local file: File? = StudioService:PromptImportFile({"json"} :: any) :: File
+        local file: File? = StudioService:PromptImportFile({"json"} ) 
         if not file then return end
 
         local fileContents = file:GetBinaryContents()
@@ -2175,7 +2175,7 @@ return function(ui: UiLibrary.Ui, plugin: Plugin)
         end
         
         local filteredIds = AssetIdFilter.filterInstances(filterOptions)
-        AssetIdFilter.replaceIds(filteredIds, idsToReplace :: any)
+        AssetIdFilter.replaceIds(filteredIds, idsToReplace )
 
         warn("Finished replacing Ids")
     end)
@@ -2486,7 +2486,7 @@ return function(ui: UiLibrary.Ui, _plugin: Plugin)
 
 	local function getThemeIdByName(themeName: string): string?
 		for id, theme in pairs(ui.theme.getThemes()) do
-			if (theme :: any).Name == themeName then
+			if (theme ).Name == themeName then
 				return id
 			end
 		end
@@ -2514,18 +2514,18 @@ return function(ui: UiLibrary.Ui, _plugin: Plugin)
 
 			local success, newThemeId = pcall(ui.theme.add, rawTheme)
 			if not success then
-				local splitMessage = string.split(newThemeId :: string, ": ")
+				local splitMessage = string.split(newThemeId , ": ")
 				ui:Notify("Notification", "Failed to apply " .. tostring(themeName) .. ": " .. tostring(splitMessage[#splitMessage]))
 				return
 			end
 
-			local themeId = newThemeId :: string
+			local themeId = newThemeId 
 			applyThemeById(themeId)
 		end)
 	end
 
 	tab:CreateButton("Import theme", function()
-		local file: File = StudioService:PromptImportFile({ "json" } :: any) :: File
+		local file: File = StudioService:PromptImportFile({ "json" } ) 
 		if not file then
 			return
 		end
@@ -2539,12 +2539,12 @@ return function(ui: UiLibrary.Ui, _plugin: Plugin)
 		local result
 		success, result = pcall(ui.theme.add, rawTheme)
 		if not success then
-			local splitMessage = string.split(result :: string, ": ")
+			local splitMessage = string.split(result , ": ")
 			ui:Notify("Notification", "Failed to import theme: " .. tostring(splitMessage[#splitMessage]))
 			return
 		end
 
-		applyThemeById(result :: string)
+		applyThemeById(result )
 	end)
 end
 ]]></ProtectedString>
@@ -2733,7 +2733,7 @@ end
 
 local function CreateTab(self: Ui, name: string): Tab.Tab
 	local tabIndex = #self._tabs + 1
-	local tab = Tab.new(self.instance :: any, function()
+	local tab = Tab.new(self.instance , function()
 		if self._currentTabIndex == tabIndex then return end
 		selectTab(self, tabIndex)
 	end, name)
@@ -2755,7 +2755,7 @@ local function CreateTab(self: Ui, name: string): Tab.Tab
 end
 
 local function CreateTip(self: Ui, text: string): Tip.Tip
-	return Tip.new(self.instance.Tip :: any, text)
+	return Tip.new(self.instance.Tip , text)
 end
 
 local function Notify(self: Ui, title: string, description: string)
@@ -2842,7 +2842,7 @@ local function Destroy(self: Ui)
 
 	self.instance:Destroy()
 
-	table.clear(self :: any)
+	table.clear(self )
 end
 
 export type Ui = {
@@ -5752,13 +5752,13 @@ local function CreateSplit(self: Tab): Split.Split
 end
 
 local function CreateList(self: Tab): List.List
-	local list = List.new(self.instance :: any)
+	local list = List.new(self.instance )
 	table.insert(self._elements, list)
 	return list
 end
 
 local function CreateLabel(self: Tab, text: string): Label.Label
-	local label = Label.new(self.instance :: any, text)
+	local label = Label.new(self.instance , text)
 	table.insert(self._elements, label)
 	return label
 end
@@ -5776,7 +5776,7 @@ local function Destroy(self: Tab)
 		element:Destroy() 
 	end
 
-	table.clear(self :: any)
+	table.clear(self )
 end
 
 export type Tab = {
@@ -5903,7 +5903,7 @@ end
 local function Destroy(self: Button)
     self.instance:Destroy()
     
-	table.clear(self :: { any })
+	table.clear(self )
 end
 
 export type Button = {
@@ -6054,7 +6054,7 @@ local function Destroy(self: Input)
     if self._tip then self._tip:Destroy() end
     self.instance:Destroy()
 
-    table.clear(self :: any)
+    table.clear(self )
 end
 
 export type Input = {
@@ -6101,7 +6101,7 @@ function Input.new(parent: GuiObject, placeholderText: string, callback: any): I
         AddTip = AddTip,
         UpdateTheme = UpdateTheme,
         Destroy = Destroy,
-    } :: Input
+    } 
 
     self:UpdateTheme()
     instance.Parent = parent
@@ -6186,7 +6186,7 @@ end
 local function Destroy(self: Label)
     self.instance:Destroy()
 
-    table.clear(self :: any)
+    table.clear(self )
 end
 
 export type Label = {
@@ -6293,7 +6293,7 @@ local function Get(self: List): { string }
 end
 
 local function AddInput(self: List, placeholderText: string, callback: any): Input.Input
-    local input = Input.new(self.instance :: any, placeholderText, callback)
+    local input = Input.new(self.instance , placeholderText, callback)
 
     local scrollingFrame = self.instance.ScrollingFrame
     scrollingFrame.Position = UDim2.new(0.5, 0, 0, 23)
@@ -6305,7 +6305,7 @@ end
 
 local function CreateElement(self: List, value: string): ListElement.ListElement
     local listElement = ListElement.new(
-        self.instance.ScrollingFrame :: any, 
+        self.instance.ScrollingFrame , 
         function() self.elements[value] = nil end,
         value
     )
@@ -6340,7 +6340,7 @@ local function Destroy(self: List)
 
     self.instance:Destroy()
 
-    table.clear(self :: any)
+    table.clear(self )
 end
 
 export type List = {
@@ -6371,7 +6371,7 @@ function List.new(parent: typeof(tabAsset)): List
         RemoveElement = RemoveElement,
         UpdateTheme = UpdateTheme,
         Destroy = Destroy,
-    } :: List
+    } 
 
     self:UpdateTheme()
     instance.Parent = parent
@@ -6496,7 +6496,7 @@ local function UpdateTheme(self: ListElement)
     end
 
     if self._removedConnection then
-        local elementButton = (element :: any).ImageButton
+        local elementButton = (element ).ImageButton
         Theme.updateFrame(elementButton)
         elementButton.ImageColor3 = theme.XColor
         elementButton.BackgroundColor3 = theme.UnselectedColor
@@ -6512,7 +6512,7 @@ local function Destroy(self: ListElement)
 
     self.instance:Destroy()
 
-    table.clear(self :: any)
+    table.clear(self )
 end
 
 export type ListElement = {
@@ -6542,7 +6542,7 @@ function ListElement.new(parent: typeof(listAsset.ScrollingFrame), removedCallba
         AddDestroyButton = AddDestroyButton,
         UpdateTheme = UpdateTheme,
         Destroy = Destroy,
-    } :: ListElement
+    } 
 
     self:UpdateTheme()
     instance.Parent = parent
@@ -6668,7 +6668,7 @@ local function Destroy(self: Split)
 
     self.instance:Destroy()
 
-    table.clear(self :: any)
+    table.clear(self )
 end
 
 export type Split = {
@@ -6808,7 +6808,7 @@ local function Destroy(self: Toggle)
     if self._tip then self._tip:Destroy() end
     self.instance:Destroy()
 
-    table.clear(self :: any)
+    table.clear(self )
 end
 
 export type Toggle = {
@@ -6838,7 +6838,7 @@ function Toggle.new(parent: GuiObject, text: string, callback: any, defaultState
         AddTip = AddTip,
         UpdateTheme = UpdateTheme,
         Destroy = Destroy,
-    } :: Toggle
+    } 
 
     instance.Button.MouseButton1Down:Connect(function()
         self:Toggle()
@@ -7015,17 +7015,17 @@ local function getFont(rawThemeFont)
 end
 
 local function normalizeRawTheme(rawTheme: RawTheme, themeId: string): Theme
-	local studioTheme = settings().Studio.Theme :: StudioTheme
+	local studioTheme = settings().Studio.Theme 
 	local theme: { [string]: any } = {}
 
 	local function normalizeValue(key: string, value: any): any
 		if type(value) ~= "table" then return value end
 
-		local valueType = type( (value :: { any })[1] )
+		local valueType = type( (value )[1] )
 		if valueType == "string" then
 			if #value > 2 then error(tostring(key) .. " could not create a StudioStyleGuide") end
 
-			local color, modifier = table.unpack(value :: any)
+			local color, modifier = table.unpack(value )
 
 			local colorEnum = nil
 			pcall(function()
@@ -7046,7 +7046,7 @@ local function normalizeRawTheme(rawTheme: RawTheme, themeId: string): Theme
 		elseif valueType == "number" then
 			if #value ~= 3 then error(tostring(key) .. " needs 3 values to create a Color3") end
 
-			local R, G, B = table.unpack(value :: any)
+			local R, G, B = table.unpack(value )
 			local success, result = pcall(Color3.fromRGB, R, G, B)
 			if not success then error(tostring(key) .. " could not create a Color3") end
 			return result
@@ -7248,7 +7248,7 @@ end
 
 local function Destroy(self: Tip)
     self.instance:Destroy()
-    table.clear(self :: any)
+    table.clear(self )
 end
 
 export type Tip = {

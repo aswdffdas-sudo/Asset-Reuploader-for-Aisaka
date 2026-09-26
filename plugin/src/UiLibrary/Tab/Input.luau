@@ -93,7 +93,7 @@ local function Destroy(self: Input)
     if self._tip then self._tip:Destroy() end
     self.instance:Destroy()
 
-    table.clear(self :: any)
+    table.clear(self )
 end
 
 export type Input = {
@@ -140,7 +140,7 @@ function Input.new(parent: GuiObject, placeholderText: string, callback: any): I
         AddTip = AddTip,
         UpdateTheme = UpdateTheme,
         Destroy = Destroy,
-    } :: Input
+    } 
 
     self:UpdateTheme()
     instance.Parent = parent

@@ -117,7 +117,7 @@ return function(ui: UiLibrary.Ui, _plugin: Plugin)
 
 	local function getThemeIdByName(themeName: string): string?
 		for id, theme in pairs(ui.theme.getThemes()) do
-			if (theme :: any).Name == themeName then
+			if (theme ).Name == themeName then
 				return id
 			end
 		end
@@ -145,18 +145,18 @@ return function(ui: UiLibrary.Ui, _plugin: Plugin)
 
 			local success, newThemeId = pcall(ui.theme.add, rawTheme)
 			if not success then
-				local splitMessage = string.split(newThemeId :: string, ": ")
+				local splitMessage = string.split(newThemeId , ": ")
 				ui:Notify("Notification", "Failed to apply " .. tostring(themeName) .. ": " .. tostring(splitMessage[#splitMessage]))
 				return
 			end
 
-			local themeId = newThemeId :: string
+			local themeId = newThemeId 
 			applyThemeById(themeId)
 		end)
 	end
 
 	tab:CreateButton("Import theme", function()
-		local file: File = StudioService:PromptImportFile({ "json" } :: any) :: File
+		local file: File = StudioService:PromptImportFile({ "json" } ) 
 		if not file then
 			return
 		end
@@ -170,11 +170,11 @@ return function(ui: UiLibrary.Ui, _plugin: Plugin)
 		local result
 		success, result = pcall(ui.theme.add, rawTheme)
 		if not success then
-			local splitMessage = string.split(result :: string, ": ")
+			local splitMessage = string.split(result , ": ")
 			ui:Notify("Notification", "Failed to import theme: " .. tostring(splitMessage[#splitMessage]))
 			return
 		end
 
-		applyThemeById(result :: string)
+		applyThemeById(result )
 	end)
 end

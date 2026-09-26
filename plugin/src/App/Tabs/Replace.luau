@@ -77,7 +77,7 @@ return function(ui: UiLibrary.Ui, plugin: Plugin)
     local tab = ui:CreateTab("Replace")
 
     local replaceButton = tab:CreateButton("Replace ids", function()
-        local file: File? = StudioService:PromptImportFile({"json"} :: any) :: File
+        local file: File? = StudioService:PromptImportFile({"json"} ) 
         if not file then return end
 
         local fileContents = file:GetBinaryContents()
@@ -124,7 +124,7 @@ return function(ui: UiLibrary.Ui, plugin: Plugin)
         end
         
         local filteredIds = AssetIdFilter.filterInstances(filterOptions)
-        AssetIdFilter.replaceIds(filteredIds, idsToReplace :: any)
+        AssetIdFilter.replaceIds(filteredIds, idsToReplace )
 
         warn("Finished replacing Ids")
     end)

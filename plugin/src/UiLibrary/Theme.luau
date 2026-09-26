@@ -152,17 +152,17 @@ local function getFont(rawThemeFont)
 end
 
 local function normalizeRawTheme(rawTheme: RawTheme, themeId: string): Theme
-	local studioTheme = settings().Studio.Theme :: StudioTheme
+	local studioTheme = settings().Studio.Theme 
 	local theme: { [string]: any } = {}
 
 	local function normalizeValue(key: string, value: any): any
 		if type(value) ~= "table" then return value end
 
-		local valueType = type( (value :: { any })[1] )
+		local valueType = type( (value )[1] )
 		if valueType == "string" then
 			if #value > 2 then error(tostring(key) .. " could not create a StudioStyleGuide") end
 
-			local color, modifier = table.unpack(value :: any)
+			local color, modifier = table.unpack(value )
 
 			local colorEnum = nil
 			pcall(function()
@@ -183,7 +183,7 @@ local function normalizeRawTheme(rawTheme: RawTheme, themeId: string): Theme
 		elseif valueType == "number" then
 			if #value ~= 3 then error(tostring(key) .. " needs 3 values to create a Color3") end
 
-			local R, G, B = table.unpack(value :: any)
+			local R, G, B = table.unpack(value )
 			local success, result = pcall(Color3.fromRGB, R, G, B)
 			if not success then error(tostring(key) .. " could not create a Color3") end
 			return result

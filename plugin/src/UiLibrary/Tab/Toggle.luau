@@ -97,7 +97,7 @@ local function Destroy(self: Toggle)
     if self._tip then self._tip:Destroy() end
     self.instance:Destroy()
 
-    table.clear(self :: any)
+    table.clear(self )
 end
 
 export type Toggle = {
@@ -127,7 +127,7 @@ function Toggle.new(parent: GuiObject, text: string, callback: any, defaultState
         AddTip = AddTip,
         UpdateTheme = UpdateTheme,
         Destroy = Destroy,
-    } :: Toggle
+    } 
 
     instance.Button.MouseButton1Down:Connect(function()
         self:Toggle()

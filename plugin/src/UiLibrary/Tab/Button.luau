@@ -78,7 +78,7 @@ end
 local function Destroy(self: Button)
     self.instance:Destroy()
     
-	table.clear(self :: { any })
+	table.clear(self )
 end
 
 export type Button = {

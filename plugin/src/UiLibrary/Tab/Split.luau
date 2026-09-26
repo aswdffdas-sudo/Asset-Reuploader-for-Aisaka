@@ -109,7 +109,7 @@ local function Destroy(self: Split)
 
     self.instance:Destroy()
 
-    table.clear(self :: any)
+    table.clear(self )
 end
 
 export type Split = {

@@ -77,7 +77,7 @@ end
 
 local function CreateTab(self: Ui, name: string): Tab.Tab
 	local tabIndex = #self._tabs + 1
-	local tab = Tab.new(self.instance :: any, function()
+	local tab = Tab.new(self.instance , function()
 		if self._currentTabIndex == tabIndex then return end
 		selectTab(self, tabIndex)
 	end, name)
@@ -99,7 +99,7 @@ local function CreateTab(self: Ui, name: string): Tab.Tab
 end
 
 local function CreateTip(self: Ui, text: string): Tip.Tip
-	return Tip.new(self.instance.Tip :: any, text)
+	return Tip.new(self.instance.Tip , text)
 end
 
 local function Notify(self: Ui, title: string, description: string)
@@ -186,7 +186,7 @@ local function Destroy(self: Ui)
 
 	self.instance:Destroy()
 
-	table.clear(self :: any)
+	table.clear(self )
 end
 
 export type Ui = {

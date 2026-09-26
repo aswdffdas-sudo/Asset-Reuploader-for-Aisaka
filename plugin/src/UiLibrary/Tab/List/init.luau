@@ -69,7 +69,7 @@ local function Get(self: List): { string }
 end
 
 local function AddInput(self: List, placeholderText: string, callback: any): Input.Input
-    local input = Input.new(self.instance :: any, placeholderText, callback)
+    local input = Input.new(self.instance , placeholderText, callback)
 
     local scrollingFrame = self.instance.ScrollingFrame
     scrollingFrame.Position = UDim2.new(0.5, 0, 0, 23)
@@ -81,7 +81,7 @@ end
 
 local function CreateElement(self: List, value: string): ListElement.ListElement
     local listElement = ListElement.new(
-        self.instance.ScrollingFrame :: any, 
+        self.instance.ScrollingFrame , 
         function() self.elements[value] = nil end,
         value
     )
@@ -116,7 +116,7 @@ local function Destroy(self: List)
 
     self.instance:Destroy()
 
-    table.clear(self :: any)
+    table.clear(self )
 end
 
 export type List = {
@@ -147,7 +147,7 @@ function List.new(parent: typeof(tabAsset)): List
         RemoveElement = RemoveElement,
         UpdateTheme = UpdateTheme,
         Destroy = Destroy,
-    } :: List
+    } 
 
     self:UpdateTheme()
     instance.Parent = parent

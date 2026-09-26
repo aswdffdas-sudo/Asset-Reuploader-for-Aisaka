@@ -109,7 +109,7 @@ local function UpdateTheme(self: ListElement)
     end
 
     if self._removedConnection then
-        local elementButton = (element :: any).ImageButton
+        local elementButton = (element ).ImageButton
         Theme.updateFrame(elementButton)
         elementButton.ImageColor3 = theme.XColor
         elementButton.BackgroundColor3 = theme.UnselectedColor
@@ -125,7 +125,7 @@ local function Destroy(self: ListElement)
 
     self.instance:Destroy()
 
-    table.clear(self :: any)
+    table.clear(self )
 end
 
 export type ListElement = {
@@ -155,7 +155,7 @@ function ListElement.new(parent: typeof(listAsset.ScrollingFrame), removedCallba
         AddDestroyButton = AddDestroyButton,
         UpdateTheme = UpdateTheme,
         Destroy = Destroy,
-    } :: ListElement
+    } 
 
     self:UpdateTheme()
     instance.Parent = parent

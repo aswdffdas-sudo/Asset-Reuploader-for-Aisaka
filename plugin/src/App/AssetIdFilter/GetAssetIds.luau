@@ -100,12 +100,12 @@ local function getStringIds(filteredInstance: Instance, str: string): { [number]
 end
 
 local function getAnimationId(animation: Animation): { [number]: { Instance } }
-	local s = tostring((animation :: any).AnimationId)
+	local s = tostring((animation ).AnimationId)
 	return getId(animation, pickBestValidAssetId(s))
 end
 
 local function getSoundId(sound: Sound): { [number]: { Instance } }
-	local s = tostring((sound :: any).SoundId)
+	local s = tostring((sound ).SoundId)
 	return getId(sound, pickBestValidAssetId(s))
 end
 
@@ -126,12 +126,12 @@ local function getCharacterMesh(characterMesh: CharacterMesh): { [number]: { Ins
 end
 
 local function getMeshPart(meshPart: MeshPart): { [number]: { Instance } }
-	local s = tostring((meshPart :: any).MeshId)
+	local s = tostring((meshPart ).MeshId)
 	return getId(meshPart, pickBestValidAssetId(s))
 end
 
 local function getSpecialMesh(specialMesh: SpecialMesh): { [number]: { Instance } }
-	local s = tostring((specialMesh :: any).MeshId)
+	local s = tostring((specialMesh ).MeshId)
 	return getId(specialMesh, pickBestValidAssetId(s))
 end
 
@@ -149,7 +149,7 @@ local instanceIdGetters = {
 }
 
 local function createFilterMap(instanceFilter)
-    local filterMap = {} :: any -- yes my code getting lazy i apologize... v2.0.0 will do good code
+    local filterMap = {}  -- yes my code getting lazy i apologize... v2.0.0 will do good code
     for _, className in pairs(instanceFilter) do
         if className == "LuaSourceContainer" then
             filterMap["LocalScript"] = getScriptIds
@@ -173,7 +173,7 @@ local function merge(originalIdMap: { [number]: { Instance } }, otherIdMap: { [n
 
         for _, instance in pairs(instanceArray) do
             if table.find(idInstances, instance) then continue end
-            table.insert(idInstances :: { any }, instance)
+            table.insert(idInstances , instance)
         end
     end
 end

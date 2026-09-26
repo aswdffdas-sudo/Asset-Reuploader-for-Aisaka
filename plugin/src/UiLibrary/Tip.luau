@@ -67,7 +67,7 @@ end
 
 local function Destroy(self: Tip)
     self.instance:Destroy()
-    table.clear(self :: any)
+    table.clear(self )
 end
 
 export type Tip = {

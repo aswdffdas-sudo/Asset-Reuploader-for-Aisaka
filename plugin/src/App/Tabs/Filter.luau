@@ -64,7 +64,7 @@ return function(ui: UiLibrary.Ui, plugin: Plugin)
         for _, value in pairs(placesListValues) do
             table.insert(list, tonumber(value))
         end
-        return list :: { number }
+        return list 
     end
 	
 	local split1 = tab:CreateSplit()
@@ -91,7 +91,7 @@ return function(ui: UiLibrary.Ui, plugin: Plugin)
             return 
         end
 
-        local assetTypeId = (productInfo :: any).AssetTypeId
+        local assetTypeId = (productInfo ).AssetTypeId
 		if assetTypeId ~= 9 then
             ui:Notify("Notification", "Invalid place id.") 
             return 
@@ -106,7 +106,7 @@ return function(ui: UiLibrary.Ui, plugin: Plugin)
 		local element = placeList:CreateElement(stringPlaceId)
             :AddDestroyButton()
         
-        element.instance.TextLabel.Text = "(" .. tostring(placeId) .. ") " .. tostring((productInfo :: any).Name)
+        element.instance.TextLabel.Text = "(" .. tostring(placeId) .. ") " .. tostring((productInfo ).Name)
 	end)
 	placeInput:AddTip(ui:CreateTip(
 		"Reuploading needs a place id. Public games under the creator are found automatically."

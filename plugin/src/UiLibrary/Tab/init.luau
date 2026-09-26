@@ -81,13 +81,13 @@ local function CreateSplit(self: Tab): Split.Split
 end
 
 local function CreateList(self: Tab): List.List
-	local list = List.new(self.instance :: any)
+	local list = List.new(self.instance )
 	table.insert(self._elements, list)
 	return list
 end
 
 local function CreateLabel(self: Tab, text: string): Label.Label
-	local label = Label.new(self.instance :: any, text)
+	local label = Label.new(self.instance , text)
 	table.insert(self._elements, label)
 	return label
 end
@@ -105,7 +105,7 @@ local function Destroy(self: Tab)
 		element:Destroy() 
 	end
 
-	table.clear(self :: any)
+	table.clear(self )
 end
 
 export type Tab = {

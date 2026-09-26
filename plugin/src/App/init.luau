@@ -72,7 +72,7 @@ local function getLatestVersion(): string
     local success, objects = pcall(game.GetObjects, game, PLUGIN_ID)
 	if not success then return currentVersion end
 	
-	local latestPlugin = (objects :: any)[1]
+	local latestPlugin = (objects )[1]
 	local latestVersion = latestPlugin.Version.Value
 	latestPlugin:Destroy()
 

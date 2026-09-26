@@ -85,7 +85,7 @@ return function(ui: UiLibrary.Ui, plugin: Plugin)
         local thread = coroutine.running()
         local button; button = tab:CreateButton("Failed to get api dump: retry", function()
             if not ApiDump.get() then return end
-            (button :: any):Destroy()
+            (button ):Destroy()
             coroutine.resume(thread)
         end)
         coroutine.yield(thread)

@@ -126,7 +126,7 @@ function getGameInfo(): (boolean, number, number)
         return false, creatorId, placeId
     end
 
-    local creatorInfo = (result :: ProductInfo).Creator
+    local creatorInfo = (result ).Creator
     local isGroup = creatorInfo.CreatorType == "Group"
     return isGroup, creatorInfo.CreatorTargetId, placeId
 end
@@ -180,9 +180,9 @@ return function(plugin: any, ui: any, filterOptions: any, assetType: string, pla
             return
         end
 
-        if #(result :: any) == 0 then return end
-        AssetIdFilter.replaceIds(filteredIds, result :: any)
-        warn("Replaced " .. tostring(#(result :: any)) .. " ids")
+        if #(result ) == 0 then return end
+        AssetIdFilter.replaceIds(filteredIds, result )
+        warn("Replaced " .. tostring(#(result )) .. " ids")
     end
 
     connection.onDataRecieved = onDataRecieved
@@ -205,7 +205,7 @@ return function(plugin: any, ui: any, filterOptions: any, assetType: string, pla
     
     local success, statusCode = connection:Send("/reupload", HttpService:JSONEncode(request))
     if not success then
-        local message: string = (StatusCodes :: any)[statusCode] or ("Unable to send data to localhost.\n" .. statusCode)
+        local message: string = (StatusCodes )[statusCode] or ("Unable to send data to localhost.\n" .. statusCode)
         ui:Notify("Notification", message)
 
         busy = false

@@ -69,7 +69,7 @@ end
 local function Destroy(self: Label)
     self.instance:Destroy()
 
-    table.clear(self :: any)
+    table.clear(self )
 end
 
 export type Label = {
