@@ -28,25 +28,20 @@ local function require(target)
     return _old_require(target)
 end
 
+local _unpack = unpack
 local task = task or {
     spawn = function(fn, ...)
-        local args = table.pack(...)
-        coroutine.wrap(function()
-            fn(table.unpack(args, 1, args.n))
-        end)()
+        coroutine.wrap(fn)(...)
     end,
     wait = wait,
     delay = function(t, fn, ...)
-        local args = table.pack(...)
+        local args = {...}
         delay(t, function()
-            fn(table.unpack(args, 1, args.n))
+            fn(_unpack(args))
         end)
     end,
     defer = function(fn, ...)
-        local args = table.pack(...)
-        coroutine.wrap(function()
-            fn(table.unpack(args, 1, args.n))
-        end)()
+        coroutine.wrap(fn)(...)
     end,
 }
 

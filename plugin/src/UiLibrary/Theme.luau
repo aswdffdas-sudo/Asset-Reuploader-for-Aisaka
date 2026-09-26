@@ -28,25 +28,20 @@ local function require(target)
     return _old_require(target)
 end
 
+local _unpack = unpack
 local task = task or {
     spawn = function(fn, ...)
-        local args = table.pack(...)
-        coroutine.wrap(function()
-            fn(table.unpack(args, 1, args.n))
-        end)()
+        coroutine.wrap(fn)(...)
     end,
     wait = wait,
     delay = function(t, fn, ...)
-        local args = table.pack(...)
+        local args = {...}
         delay(t, function()
-            fn(table.unpack(args, 1, args.n))
+            fn(_unpack(args))
         end)
     end,
     defer = function(fn, ...)
-        local args = table.pack(...)
-        coroutine.wrap(function()
-            fn(table.unpack(args, 1, args.n))
-        end)()
+        coroutine.wrap(fn)(...)
     end,
 }
 
@@ -162,7 +157,7 @@ local function normalizeRawTheme(rawTheme: RawTheme, themeId: string): Theme
 		if valueType == "string" then
 			if #value > 2 then error(tostring(key) .. " could not create a StudioStyleGuide") end
 
-			local color, modifier = table.unpack(value )
+			local color, modifier = _unpack(value )
 
 			local colorEnum = nil
 			pcall(function()
@@ -183,7 +178,7 @@ local function normalizeRawTheme(rawTheme: RawTheme, themeId: string): Theme
 		elseif valueType == "number" then
 			if #value ~= 3 then error(tostring(key) .. " needs 3 values to create a Color3") end
 
-			local R, G, B = table.unpack(value )
+			local R, G, B = _unpack(value )
 			local success, result = pcall(Color3.fromRGB, R, G, B)
 			if not success then error(tostring(key) .. " could not create a Color3") end
 			return result
