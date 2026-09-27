@@ -71,7 +71,7 @@ local StudioService = game:GetService("StudioService")
 return function(ui: UiLibrary.Ui, plugin: Plugin)
     local tab = ui:CreateTab("Replace")
 
-    local replaceButton = tab:CreateButton("Replace ids", function()
+    local replaceButton = tab:CreateButton("Import Saved Output JSON", function()
         local file: File? = StudioService:PromptImportFile({"json"} ) 
         if not file then return end
 
@@ -79,30 +79,29 @@ return function(ui: UiLibrary.Ui, plugin: Plugin)
 
         local success, idsToReplace = pcall(HttpService.JSONDecode, HttpService, fileContents)
         if not success then
-            ui:Notify("Notification", "Can't parse JSON")
+            ui:Notify("Notification", "Can't parse JSON file. Ensure it is a valid Output_*.json file.")
             return
         end
 
+        local cleanList = {}
         for i, idInfo in pairs(idsToReplace) do
             if type(idInfo) ~= "table" then
                 ui:Notify("Notification", "Invalid index: " .. tostring(i))
                 return
             end
 
-            local oldId = idInfo["oldId"]
-            local newId = idInfo["newId"]
+            local oldId = tonumber(idInfo["oldId"]) or idInfo["oldId"]
+            local newId = tonumber(idInfo["newId"]) or idInfo["newId"]
 
-            local isOldIdValid = oldId and type(oldId) == "number"
-            if not isOldIdValid then
-                ui:Notify("Notification", "Invalid type at " .. tostring(i) .. "[oldId]")
+            if not oldId or not newId then
+                ui:Notify("Notification", "Invalid ID pair at index " .. tostring(i))
                 return
             end
 
-            local isNewIdValid = newId and type(newId) == "number"
-            if not isNewIdValid then
-                ui:Notify("Notification", "Invalid type at " .. tostring(i) .. "[newId]")
-                return
-            end
+            table.insert(cleanList, {
+                oldId = oldId,
+                newId = newId
+            })
         end
 
         local filterOptions = getFilterOptions(plugin, getGameDescendants())
@@ -119,9 +118,10 @@ return function(ui: UiLibrary.Ui, plugin: Plugin)
         end
         
         local filteredIds = AssetIdFilter.filterInstances(filterOptions)
-        AssetIdFilter.replaceIds(filteredIds, idsToReplace )
+        AssetIdFilter.replaceIds(filteredIds, cleanList)
 
-        warn("Finished replacing Ids")
+        ui:Notify("Notification", "Successfully replaced " .. tostring(#cleanList) .. " IDs from JSON!")
+        warn("Finished replacing Ids from imported JSON")
     end)
     replaceButton.instance.LayoutOrder = 2
 end
