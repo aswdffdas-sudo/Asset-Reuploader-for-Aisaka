@@ -56,10 +56,15 @@ function AssetIdFilter.filterInstances(filterOptions: getAssetIds.FilterOptions)
     return getAssetIds(filterOptions)
 end
 
-function AssetIdFilter.getIdArray(filteredIds: { [number]: { Instance } } ): { number }
+function AssetIdFilter.getIdArray(filteredIds: { [any]: { Instance } } ): { number }
+    local idMap = {}
     local idArray = {}
     for id, _ in pairs(filteredIds) do
-        table.insert(idArray, id)
+        local num = tonumber(id)
+        if num and not idMap[num] then
+            idMap[num] = true
+            table.insert(idArray, num)
+        end
     end
     return idArray
 end

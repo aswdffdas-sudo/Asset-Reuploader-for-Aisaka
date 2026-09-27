@@ -1,19 +1,48 @@
 package request
 
 import (
+	"encoding/json"
+	"strconv"
+	"strings"
+
 	"github.com/kartFr/Asset-Reuploader/internal/roblox"
 	"github.com/kartFr/Asset-Reuploader/internal/roblox/games"
 )
 
+// FlexibleIDs safely unmarshals both numbers and strings (e.g. 12345 or "12345")
+type FlexibleIDs []int64
+
+func (f *FlexibleIDs) UnmarshalJSON(data []byte) error {
+	var raw []interface{}
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+
+	result := make([]int64, 0, len(raw))
+	for _, item := range raw {
+		switch v := item.(type) {
+		case float64:
+			result = append(result, int64(v))
+		case string:
+			clean := strings.TrimSpace(v)
+			if parsed, err := strconv.ParseInt(clean, 10, 64); err == nil {
+				result = append(result, parsed)
+			}
+		}
+	}
+	*f = result
+	return nil
+}
+
 type RawRequest struct {
-	PlaceID         int64   `json:"placeId"`
-	CreatorID       int64   `json:"creatorId"`
-	IDs             []int64 `json:"ids"`
-	DefaultPlaceIDs []int64 `json:"defaultPlaceIds"`
-	PluginVersion   string  `json:"pluginVersion"`
-	AssetType       string  `json:"assetType"`
-	ExportJSON      bool    `json:"exportJSON"`
-	IsGroup         bool    `json:"isGroup"`
+	PlaceID         int64       `json:"placeId"`
+	CreatorID       int64       `json:"creatorId"`
+	IDs             FlexibleIDs `json:"ids"`
+	DefaultPlaceIDs FlexibleIDs `json:"defaultPlaceIds"`
+	PluginVersion   string      `json:"pluginVersion"`
+	AssetType       string      `json:"assetType"`
+	ExportJSON      bool        `json:"exportJSON"`
+	IsGroup         bool        `json:"isGroup"`
 }
 
 type Request struct {
@@ -38,8 +67,8 @@ func FromRawRequest(c *roblox.Client, req *RawRequest) (*Request, error) {
 		UniverseID:      universeID,
 		PlaceID:         placeID,
 		CreatorID:       req.CreatorID,
-		IDs:             req.IDs,
-		DefaultPlaceIDs: req.DefaultPlaceIDs,
+		IDs:             []int64(req.IDs),
+		DefaultPlaceIDs: []int64(req.DefaultPlaceIDs),
 		IsGroup:         req.IsGroup,
 	}, nil
 }
