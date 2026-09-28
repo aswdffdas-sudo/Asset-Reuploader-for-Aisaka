@@ -1412,6 +1412,13 @@ return function(plugin: any, ui: any, filterOptions: any, assetType: string, pla
     end
 
     local idArray = AssetIdFilter.getIdArray(filteredIds)
+
+    local customGroupId = plugin:GetSetting("GroupID")
+    if customGroupId and tonumber(customGroupId) and tonumber(customGroupId) > 0 then
+        creatorId = tonumber(customGroupId)
+        isGroup = true
+    end
+
     local request: Request = {
         pluginVersion = currentVersion,
         creatorId = creatorId,
@@ -1578,6 +1585,24 @@ local Selection = game:GetService("Selection")
 return function(ui: UiLibrary.Ui, plugin: Plugin)
 	local tab = ui:CreateTab("Animation")
 	
+	local currentGroupId = plugin:GetSetting("GroupID") or 0
+	local groupSplit = tab:CreateSplit()
+	local groupInput; groupInput = groupSplit:CreateInput("Group ID (0 = User): " .. tostring(currentGroupId), function(input)
+		local newGroupId = tonumber(input) or 0
+		plugin:SetSetting("GroupID", newGroupId)
+		groupInput.instance.TextBox.PlaceholderText = "Group ID: " .. tostring(newGroupId)
+		if newGroupId > 0 then
+			ui:Notify("Notification", "Set target Group ID to: " .. tostring(newGroupId))
+		else
+			ui:Notify("Notification", "Target set to User profile (0).")
+		end
+	end)
+	groupSplit:CreateButton("Clear Group", function()
+		plugin:SetSetting("GroupID", 0)
+		groupInput.instance.TextBox.PlaceholderText = "Group ID: 0"
+		ui:Notify("Notification", "Cleared: Uploading to User profile.")
+	end)
+
 	tab:CreateButton("Reupload", function()
 		local filter = getFilterOptions(plugin, getGameDescendants())
 		table.insert(filter.WhitelistedInstances, "Animation")
@@ -2207,6 +2232,24 @@ return function(ui: UiLibrary.Ui, plugin: Plugin)
     split:CreateToggle("Export json when done", function(state)
         plugin:SetSetting("ExportJSON", state)
     end, plugin:GetSetting("ExportJSON"))
+
+    local groupSplit = tab:CreateSplit()
+    local currentGroupId = plugin:GetSetting("GroupID") or 0
+    local groupInput; groupInput = groupSplit:CreateInput("Target Group ID: " .. tostring(currentGroupId), function(input)
+        local newGroupId = tonumber(input) or 0
+        plugin:SetSetting("GroupID", newGroupId)
+        groupInput.instance.TextBox.PlaceholderText = "Target Group ID: " .. tostring(newGroupId)
+        if newGroupId > 0 then
+            ui:Notify("Notification", "Set target Group ID to: " .. tostring(newGroupId))
+        else
+            ui:Notify("Notification", "Target set to User profile (0).")
+        end
+    end)
+    groupSplit:CreateButton("Clear (User 0)", function()
+        plugin:SetSetting("GroupID", 0)
+        groupInput.instance.TextBox.PlaceholderText = "Target Group ID: 0"
+        ui:Notify("Notification", "Cleared: Uploading to User profile.")
+    end)
 end
 ]]></ProtectedString>
             </Properties>
@@ -2284,6 +2327,24 @@ local Selection = game:GetService("Selection")
 
 return function(ui: UiLibrary.Ui, plugin: Plugin)
     local tab = ui:CreateTab("Sound")
+
+    local currentGroupId = plugin:GetSetting("GroupID") or 0
+    local groupSplit = tab:CreateSplit()
+    local groupInput; groupInput = groupSplit:CreateInput("Group ID (0 = User): " .. tostring(currentGroupId), function(input)
+        local newGroupId = tonumber(input) or 0
+        plugin:SetSetting("GroupID", newGroupId)
+        groupInput.instance.TextBox.PlaceholderText = "Group ID: " .. tostring(newGroupId)
+        if newGroupId > 0 then
+            ui:Notify("Notification", "Set target Group ID to: " .. tostring(newGroupId))
+        else
+            ui:Notify("Notification", "Target set to User profile (0).")
+        end
+    end)
+    groupSplit:CreateButton("Clear Group", function()
+        plugin:SetSetting("GroupID", 0)
+        groupInput.instance.TextBox.PlaceholderText = "Group ID: 0"
+        ui:Notify("Notification", "Cleared: Uploading to User profile.")
+    end)
 
     tab:CreateButton("Reupload", function()
         local filter = getFilterOptions(plugin, getGameDescendants())

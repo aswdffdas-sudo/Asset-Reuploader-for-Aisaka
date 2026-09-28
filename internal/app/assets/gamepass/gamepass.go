@@ -101,13 +101,16 @@ func fetchGamepassInfo(client *http.Client, gamepassID int64) (string, []byte) {
 	return name, imgData
 }
 
-func uploadTShirtToOctane(c *roblox.Client, name string, imgData []byte) (int64, error) {
+func uploadTShirtToOctane(c *roblox.Client, name string, imgData []byte, groupID int64) (int64, error) {
 	domain := strings.TrimSpace(config.Get("domain"))
 	if domain == "" {
 		domain = "octane.wtf"
 	}
 
 	uploadURL := fmt.Sprintf("https://%s/develop/upload", strings.TrimPrefix(domain, "www."))
+	if groupID > 0 {
+		uploadURL = fmt.Sprintf("https://%s/develop/upload?groupId=%d", strings.TrimPrefix(domain, "www."), groupID)
+	}
 
 	for attempt := 1; attempt <= 3; attempt++ {
 		// Step 1: Probe for CSRF
@@ -135,6 +138,10 @@ func uploadTShirtToOctane(c *roblox.Client, name string, imgData []byte) (int64,
 
 		_ = w.WriteField("name", name)
 		_ = w.WriteField("assetType", "2") // 2 = T-Shirt on Octane develop?View=2
+		if groupID > 0 {
+			_ = w.WriteField("groupId", strconv.FormatInt(groupID, 10))
+			_ = w.WriteField("targetId", strconv.FormatInt(groupID, 10))
+		}
 
 		h := make(textproto.MIMEHeader)
 		h.Set("Content-Disposition", fmt.Sprintf(`form-data; name="file"; filename="%s.png"`, name))
@@ -226,6 +233,16 @@ func Reupload(ctx *context.Context, r *request.Request) {
 
 	logger.Println("Reuploading gamepasses as T-Shirts to Octane (develop?View=2)...")
 
+	var groupID int64
+	if r.IsGroup {
+		groupID = r.CreatorID
+	}
+	if groupID == 0 {
+		if cfgGroup := strings.TrimSpace(config.Get("group_id")); cfgGroup != "" {
+			groupID, _ = strconv.ParseInt(cfgGroup, 10, 64)
+		}
+	}
+
 	httpClient := &http.Client{Timeout: 15 * time.Second}
 	total := len(r.IDs)
 
@@ -235,9 +252,13 @@ func Reupload(ctx *context.Context, r *request.Request) {
 			time.Sleep(1200 * time.Millisecond)
 		}
 		name, imgBytes := fetchGamepassInfo(httpClient, gamepassID)
-		fmt.Printf("[%d/%d] Uploading '%s' (%d) as T-Shirt to Octane...\n", idx+1, total, name, gamepassID)
+		targetDesc := "User"
+		if groupID > 0 {
+			targetDesc = fmt.Sprintf("Group %d", groupID)
+		}
+		fmt.Printf("[%d/%d] Uploading '%s' (%d) to Octane (%s)...\n", idx+1, total, name, gamepassID, targetDesc)
 
-		newAssetID, err := uploadTShirtToOctane(client, name, imgBytes)
+		newAssetID, err := uploadTShirtToOctane(client, name, imgBytes, groupID)
 		if err != nil {
 			color.Error.Println(fmt.Sprintf("[%d/%d] Failed to upload '%s' (%d): %v", idx+1, total, name, gamepassID, err))
 			continue

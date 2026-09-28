@@ -69,6 +69,24 @@ local Selection = game:GetService("Selection")
 return function(ui: UiLibrary.Ui, plugin: Plugin)
     local tab = ui:CreateTab("Sound")
 
+    local currentGroupId = plugin:GetSetting("GroupID") or 0
+    local groupSplit = tab:CreateSplit()
+    local groupInput; groupInput = groupSplit:CreateInput("Group ID (0 = User): " .. tostring(currentGroupId), function(input)
+        local newGroupId = tonumber(input) or 0
+        plugin:SetSetting("GroupID", newGroupId)
+        groupInput.instance.TextBox.PlaceholderText = "Group ID: " .. tostring(newGroupId)
+        if newGroupId > 0 then
+            ui:Notify("Notification", "Set target Group ID to: " .. tostring(newGroupId))
+        else
+            ui:Notify("Notification", "Target set to User profile (0).")
+        end
+    end)
+    groupSplit:CreateButton("Clear Group", function()
+        plugin:SetSetting("GroupID", 0)
+        groupInput.instance.TextBox.PlaceholderText = "Group ID: 0"
+        ui:Notify("Notification", "Cleared: Uploading to User profile.")
+    end)
+
     tab:CreateButton("Reupload", function()
         local filter = getFilterOptions(plugin, getGameDescendants())
         table.insert(filter.WhitelistedInstances, "Sound")

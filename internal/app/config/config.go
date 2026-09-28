@@ -21,6 +21,7 @@ var (
 		"api_key_file":       "api-key.txt",
 		"domain":             "octane.wtf",
 		"user_id":            "24811",
+		"group_id":           "",
 	}
 )
 

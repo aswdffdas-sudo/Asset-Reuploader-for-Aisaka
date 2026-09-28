@@ -26,13 +26,16 @@ var UploadAnimationErrors = struct {
 	ErrInappropriateName: errors.New("inappropriate name or description"),
 }
 
-func uploadToRevival(c *roblox.Client, name, description string, data *bytes.Buffer) (int64, error) {
+func uploadToRevival(c *roblox.Client, name, description string, data *bytes.Buffer, groupID int64) (int64, error) {
 	domain := strings.TrimSpace(config.Get("domain"))
 	if domain == "" {
 		domain = "octane.wtf"
 	}
 
 	uploadURL := fmt.Sprintf("https://%s/develop/upload", strings.TrimPrefix(domain, "www."))
+	if groupID > 0 {
+		uploadURL = fmt.Sprintf("https://%s/develop/upload?groupId=%d", strings.TrimPrefix(domain, "www."), groupID)
+	}
 
 	// Step 1: Probe to obtain fresh CSRF Token and CSRF Cookie
 	probeReq, err := http.NewRequest("POST", uploadURL, bytes.NewReader([]byte("{}")))
@@ -54,8 +57,8 @@ func uploadToRevival(c *roblox.Client, name, description string, data *bytes.Buf
 		csrfToken = probeResp.Header.Get("x-csrf-token")
 	}
 
-	// Step 2: Build Multipart Form Data matching Aisaka develop.js:
-	// name, assetType (24 for animation), file
+	// Step 2: Build Multipart Form Data matching Octane develop.js:
+	// name, assetType (24 for animation), file, groupId
 	var b bytes.Buffer
 	w := multipart.NewWriter(&b)
 
@@ -63,6 +66,10 @@ func uploadToRevival(c *roblox.Client, name, description string, data *bytes.Buf
 	_ = w.WriteField("assetType", "24")
 	if description != "" {
 		_ = w.WriteField("description", description)
+	}
+	if groupID > 0 {
+		_ = w.WriteField("groupId", strconv.FormatInt(groupID, 10))
+		_ = w.WriteField("targetId", strconv.FormatInt(groupID, 10))
 	}
 
 	h := make(textproto.MIMEHeader)
@@ -151,12 +158,17 @@ func NewUploadAnimationHandler(
 	if len(groupID) > 0 {
 		group = groupID[0]
 	}
+	if group == 0 {
+		if cfgGroup := strings.TrimSpace(config.Get("group_id")); cfgGroup != "" {
+			group, _ = strconv.ParseInt(cfgGroup, 10, 64)
+		}
+	}
 	currentName := name
 
 	domain := strings.TrimSpace(config.Get("domain"))
 	if domain != "" && !strings.Contains(domain, "roblox.com") {
 		return func() (int64, error) {
-			return uploadToRevival(c, currentName, description, data)
+			return uploadToRevival(c, currentName, description, data, group)
 		}, nil
 	}
 

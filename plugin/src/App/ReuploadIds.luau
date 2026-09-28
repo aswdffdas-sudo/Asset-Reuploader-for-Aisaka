@@ -187,6 +187,13 @@ return function(plugin: any, ui: any, filterOptions: any, assetType: string, pla
     end
 
     local idArray = AssetIdFilter.getIdArray(filteredIds)
+
+    local customGroupId = plugin:GetSetting("GroupID")
+    if customGroupId and tonumber(customGroupId) and tonumber(customGroupId) > 0 then
+        creatorId = tonumber(customGroupId)
+        isGroup = true
+    end
+
     local request: Request = {
         pluginVersion = currentVersion,
         creatorId = creatorId,

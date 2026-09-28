@@ -86,13 +86,16 @@ func newUploadAudioRequest(name string, data *bytes.Buffer, groupID ...int64) (*
 	return req, nil
 }
 
-func uploadAudioToRevival(c *roblox.Client, name string, data *bytes.Buffer) (*publishAudioResponse, error) {
+func uploadAudioToRevival(c *roblox.Client, name string, data *bytes.Buffer, groupID int64) (*publishAudioResponse, error) {
 	domain := strings.TrimSpace(config.Get("domain"))
 	if domain == "" {
 		domain = "octane.wtf"
 	}
 
 	uploadURL := fmt.Sprintf("https://%s/develop/upload", strings.TrimPrefix(domain, "www."))
+	if groupID > 0 {
+		uploadURL = fmt.Sprintf("https://%s/develop/upload?groupId=%d", strings.TrimPrefix(domain, "www."), groupID)
+	}
 
 	// Step 1: Probe for CSRF
 	probeReq, err := http.NewRequest("POST", uploadURL, bytes.NewReader([]byte("{}")))
@@ -118,7 +121,11 @@ func uploadAudioToRevival(c *roblox.Client, name string, data *bytes.Buffer) (*p
 	w := multipart.NewWriter(&b)
 
 	_ = w.WriteField("name", name)
-	_ = w.WriteField("assetType", "3") // 3 = Audio on Aisaka develop?View=3
+	_ = w.WriteField("assetType", "3") // 3 = Audio on Octane develop?View=3
+	if groupID > 0 {
+		_ = w.WriteField("groupId", strconv.FormatInt(groupID, 10))
+		_ = w.WriteField("targetId", strconv.FormatInt(groupID, 10))
+	}
 
 	h := make(textproto.MIMEHeader)
 	h.Set("Content-Disposition", fmt.Sprintf(`form-data; name="file"; filename="%s.mp3"`, name))
@@ -195,10 +202,20 @@ func uploadAudioToRevival(c *roblox.Client, name string, data *bytes.Buffer) (*p
 }
 
 func NewUploadAudioHandler(c *roblox.Client, name string, data *bytes.Buffer, groupID ...int64) (func() (*publishAudioResponse, error), error) {
+	var group int64
+	if len(groupID) > 0 {
+		group = groupID[0]
+	}
+	if group == 0 {
+		if cfgGroup := strings.TrimSpace(config.Get("group_id")); cfgGroup != "" {
+			group, _ = strconv.ParseInt(cfgGroup, 10, 64)
+		}
+	}
+
 	domain := strings.TrimSpace(config.Get("domain"))
 	if domain != "" && !strings.Contains(domain, "roblox.com") {
 		return func() (*publishAudioResponse, error) {
-			return uploadAudioToRevival(c, name, data)
+			return uploadAudioToRevival(c, name, data, group)
 		}, nil
 	}
 

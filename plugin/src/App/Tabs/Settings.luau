@@ -66,4 +66,22 @@ return function(ui: UiLibrary.Ui, plugin: Plugin)
     split:CreateToggle("Export json when done", function(state)
         plugin:SetSetting("ExportJSON", state)
     end, plugin:GetSetting("ExportJSON"))
+
+    local groupSplit = tab:CreateSplit()
+    local currentGroupId = plugin:GetSetting("GroupID") or 0
+    local groupInput; groupInput = groupSplit:CreateInput("Target Group ID: " .. tostring(currentGroupId), function(input)
+        local newGroupId = tonumber(input) or 0
+        plugin:SetSetting("GroupID", newGroupId)
+        groupInput.instance.TextBox.PlaceholderText = "Target Group ID: " .. tostring(newGroupId)
+        if newGroupId > 0 then
+            ui:Notify("Notification", "Set target Group ID to: " .. tostring(newGroupId))
+        else
+            ui:Notify("Notification", "Target set to User profile (0).")
+        end
+    end)
+    groupSplit:CreateButton("Clear (User 0)", function()
+        plugin:SetSetting("GroupID", 0)
+        groupInput.instance.TextBox.PlaceholderText = "Target Group ID: 0"
+        ui:Notify("Notification", "Cleared: Uploading to User profile.")
+    end)
 end
